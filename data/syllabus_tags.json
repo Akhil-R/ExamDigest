@@ -1,0 +1,23 @@
+{
+  "psc": [
+    "Constitution",
+    "State Policy",
+    "Federalism",
+    "Public Administration",
+    "Governance"
+  ],
+  "ssc": [
+    "History",
+    "Geography",
+    "Polity",
+    "General Science",
+    "Quantitative Aptitude"
+  ],
+  "railway": [
+    "Railway History",
+    "General Science",
+    "Transportation",
+    "General Awareness",
+    "Arithmetic"
+  ]
+}
