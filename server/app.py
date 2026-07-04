@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 # ─── App ────────────────────────────────────────────────────────────────────
 
 VALID_EXAMS = ["psc", "ssc", "railway"]
+VALID_DATA_MODES = ["mock", "live"]
 EXAM_LABELS = {"psc": "Kerala PSC", "ssc": "Staff Selection Commission (SSC)", "railway": "Railway (RRB)"}
 
 app = FastAPI(
@@ -69,6 +70,17 @@ def _validate_exam(exam: str) -> str:
     return exam_lower
 
 
+def _validate_data_mode(data_mode: str) -> str:
+    """Normalise and validate data mode, raising HTTP 400 on bad input."""
+    mode_lower = data_mode.strip().lower()
+    if mode_lower not in VALID_DATA_MODES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid data mode '{data_mode}'. Must be one of: {VALID_DATA_MODES}.",
+        )
+    return mode_lower
+
+
 # ─── Routes ──────────────────────────────────────────────────────────────────
 
 @app.get("/", tags=["Info"])
@@ -84,6 +96,7 @@ def read_root():
         ),
         "endpoints": {
             "GET /generate?exam={psc|ssc|railway}": "Run pipeline ONCE; return digest + quiz together (recommended).",
+            "GET /generate?exam={psc|ssc|railway}&data_mode={mock|live}": "Run with deterministic mock data or best-effort free live sources.",
             "GET /current-affairs?exam={psc|ssc|railway}": "Run pipeline; return digest facts only.",
             "GET /quiz?exam={psc|ssc|railway}": "Run pipeline; return 5-question MCQ quiz only.",
             "POST /reset-memory": "Clear the deduplication memory store.",
@@ -96,6 +109,7 @@ def read_root():
 @app.get("/generate", tags=["Digest"])
 def generate(
     exam: str = Query(..., description="Target exam type: psc, ssc, or railway"),
+    data_mode: str = Query("mock", description="Data mode: mock or live"),
 ):
     """
     Run the full staged-agent pipeline **once** and return both the digest
@@ -105,18 +119,23 @@ def generate(
     Each call also updates the seen-topics memory.
     """
     exam_lower = _validate_exam(exam)
-    logger.info("Pipeline requested — exam=%s endpoint=/generate", exam_lower)
+    mode_lower = _validate_data_mode(data_mode)
+    logger.info("Pipeline requested — exam=%s data_mode=%s endpoint=/generate", exam_lower, mode_lower)
 
     try:
-        facts, quiz = run_pipeline(exam_lower)
+        facts, quiz, metadata = run_pipeline(
+            exam_lower, data_mode=mode_lower, include_metadata=True
+        )
         return {
             "exam": exam_lower,
             "exam_label": EXAM_LABELS[exam_lower],
+            "data_mode": mode_lower,
             "status": "success",
             "fact_count": len(facts),
             "question_count": len(quiz),
+            "source_warnings": metadata["source_warnings"],
             "disclaimer": (
-                "⚠  SIMULATION: Data is mock/demo content for educational purposes only."
+                "⚠  SIMULATION: Mock mode uses demo content. Live mode uses free public sources and may be incomplete."
             ),
             "digest": facts,
             "quiz": quiz,
@@ -126,7 +145,7 @@ def generate(
         logger.error("Missing data file: %s", exc)
         raise HTTPException(status_code=500, detail=f"Configuration error: {exc}")
     except Exception as exc:
-        logger.exception("Pipeline failed for exam=%s", exam_lower)
+        logger.exception("Pipeline failed for exam=%s data_mode=%s", exam_lower, mode_lower)
         raise HTTPException(status_code=500, detail=f"Pipeline execution failed: {exc}")
 
 
@@ -139,6 +158,7 @@ def health_check():
 @app.get("/current-affairs", tags=["Digest"])
 def get_current_affairs(
     exam: str = Query(..., description="Target exam type: psc, ssc, or railway"),
+    data_mode: str = Query("mock", description="Data mode: mock or live"),
 ):
     """
     Run the full staged-agent pipeline and return the verified digest facts
@@ -147,17 +167,22 @@ def get_current_affairs(
     Each fact includes a `source_url` for independent verification.
     """
     exam_lower = _validate_exam(exam)
-    logger.info("Pipeline requested — exam=%s endpoint=/current-affairs", exam_lower)
+    mode_lower = _validate_data_mode(data_mode)
+    logger.info("Pipeline requested — exam=%s data_mode=%s endpoint=/current-affairs", exam_lower, mode_lower)
 
     try:
-        facts, _ = run_pipeline(exam_lower)
+        facts, _, metadata = run_pipeline(
+            exam_lower, data_mode=mode_lower, include_metadata=True
+        )
         return {
             "exam": exam_lower,
             "exam_label": EXAM_LABELS[exam_lower],
+            "data_mode": mode_lower,
             "status": "success",
             "fact_count": len(facts),
+            "source_warnings": metadata["source_warnings"],
             "disclaimer": (
-                "⚠  SIMULATION: Data is mock/demo content for educational purposes only."
+                "⚠  SIMULATION: Mock mode uses demo content. Live mode uses free public sources and may be incomplete."
             ),
             "digest": facts,
             "generated_at": datetime.utcnow().isoformat() + "Z",
@@ -166,30 +191,36 @@ def get_current_affairs(
         logger.error("Missing data file: %s", exc)
         raise HTTPException(status_code=500, detail=f"Configuration error: {exc}")
     except Exception as exc:
-        logger.exception("Pipeline failed for exam=%s", exam_lower)
+        logger.exception("Pipeline failed for exam=%s data_mode=%s", exam_lower, mode_lower)
         raise HTTPException(status_code=500, detail=f"Pipeline execution failed: {exc}")
 
 
 @app.get("/quiz", tags=["Quiz"])
 def get_quiz(
     exam: str = Query(..., description="Target exam type: psc, ssc, or railway"),
+    data_mode: str = Query("mock", description="Data mode: mock or live"),
 ):
     """
     Run the full staged-agent pipeline and return 5 multiple-choice questions
     based on the digest for the specified exam category.
     """
     exam_lower = _validate_exam(exam)
-    logger.info("Pipeline requested — exam=%s endpoint=/quiz", exam_lower)
+    mode_lower = _validate_data_mode(data_mode)
+    logger.info("Pipeline requested — exam=%s data_mode=%s endpoint=/quiz", exam_lower, mode_lower)
 
     try:
-        _, quiz = run_pipeline(exam_lower)
+        _, quiz, metadata = run_pipeline(
+            exam_lower, data_mode=mode_lower, include_metadata=True
+        )
         return {
             "exam": exam_lower,
             "exam_label": EXAM_LABELS[exam_lower],
+            "data_mode": mode_lower,
             "status": "success",
             "question_count": len(quiz),
+            "source_warnings": metadata["source_warnings"],
             "disclaimer": (
-                "⚠  SIMULATION: Questions are generated from mock data for practice only."
+                "⚠  SIMULATION: Mock mode uses demo content. Live mode uses free public sources and may be incomplete."
             ),
             "quiz": quiz,
             "generated_at": datetime.utcnow().isoformat() + "Z",
@@ -198,7 +229,7 @@ def get_quiz(
         logger.error("Missing data file: %s", exc)
         raise HTTPException(status_code=500, detail=f"Configuration error: {exc}")
     except Exception as exc:
-        logger.exception("Pipeline failed for exam=%s", exam_lower)
+        logger.exception("Pipeline failed for exam=%s data_mode=%s", exam_lower, mode_lower)
         raise HTTPException(status_code=500, detail=f"Pipeline execution failed: {exc}")
 
 

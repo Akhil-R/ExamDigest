@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 from typing import List, Dict, Any
 
-class NewsCollector:
+from agents.live_collector import LiveNewsCollector
+
+
+class MockNewsCollector:
     """Mock News Collector stage.
     
     Fetches raw news articles containing titles, contents, source URLs, and syllabus tags.
@@ -151,9 +153,36 @@ class NewsCollector:
         ]
 
     def collect(self, exam_type: str) -> List[Dict[str, Any]]:
-        """Simulates news retrieval for the specified exam category.
-        
-        Returns all mock articles.
-        """
+        """Simulates news retrieval for the specified exam category."""
         print(f"[NewsCollector] Collecting articles for exam type: {exam_type}")
         return self.mock_db
+
+
+class NewsCollector:
+    """Mode-aware collector that supports deterministic mock data and free live data."""
+
+    VALID_MODES = {"mock", "live"}
+
+    def __init__(
+        self,
+        mode: str = "mock",
+        source_config_path: str | None = None,
+        cache_dir: str | None = None,
+    ):
+        self.mode = (mode or "mock").lower()
+        if self.mode not in self.VALID_MODES:
+            raise ValueError(f"Invalid data mode '{mode}'. Expected one of: {sorted(self.VALID_MODES)}")
+
+        self.warnings: List[str] = []
+        if self.mode == "live":
+            if not source_config_path or not cache_dir:
+                raise ValueError("Live mode requires source_config_path and cache_dir.")
+            self._collector = LiveNewsCollector(source_config_path, cache_dir)
+        else:
+            self._collector = MockNewsCollector()
+
+    def collect(self, exam_type: str) -> List[Dict[str, Any]]:
+        """Collect articles using the configured data mode."""
+        articles = self._collector.collect(exam_type)
+        self.warnings = getattr(self._collector, "warnings", [])
+        return articles

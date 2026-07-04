@@ -17,3 +17,5 @@ uvicorn[standard]
 streamlit
 requests
 python-multipart
+feedparser
+beautifulsoup4

@@ -354,6 +354,8 @@ for key, default in [
     ("digest_data", None),
     ("quiz_data", None),
     ("exam_type", "psc"),
+    ("data_mode", "mock"),
+    ("source_warnings", []),
     ("error_msg", None),
     ("pipeline_done", False),
     ("quiz_answers", {}),
@@ -373,6 +375,15 @@ with st.sidebar:
         value="http://localhost:8000",
         help="URL of the running FastAPI server",
         key="backend_url",
+    )
+
+    data_mode_choice = st.selectbox(
+        "Data source",
+        options=["mock", "live"],
+        format_func=lambda value: "Mock demo data" if value == "mock" else "Live free sources",
+        index=["mock", "live"].index(st.session_state.data_mode),
+        help="Mock is deterministic for demos. Live uses free public sources and may return fewer items.",
+        key="data_mode_select",
     )
 
     st.markdown("---")
@@ -506,7 +517,7 @@ st.markdown("---")
 
 # ─── Pipeline Execution ───────────────────────────────────────────────────────
 
-def fetch_with_progress(exam: str, backend: str) -> None:
+def fetch_with_progress(exam: str, backend: str, data_mode: str) -> None:
     """Call /generate once to get both digest and quiz in a single pipeline run.
     
     Using a single endpoint prevents the deduplication memory from being updated
@@ -514,9 +525,11 @@ def fetch_with_progress(exam: str, backend: str) -> None:
     different — possibly empty — set of facts).
     """
     st.session_state.exam_type = exam
+    st.session_state.data_mode = data_mode
     st.session_state.error_msg = None
     st.session_state.digest_data = None
     st.session_state.quiz_data = None
+    st.session_state.source_warnings = []
     st.session_state.pipeline_done = False
     st.session_state.quiz_answers = {}
     st.session_state.quiz_submitted = False
@@ -545,12 +558,15 @@ def fetch_with_progress(exam: str, backend: str) -> None:
         # Single /generate call — runs the pipeline exactly once and returns
         # both digest and quiz, so memory is only updated once.
         resp = requests.get(
-            f"{backend}/generate", params={"exam": exam}, timeout=30
+            f"{backend}/generate",
+            params={"exam": exam, "data_mode": data_mode},
+            timeout=30,
         )
         if resp.status_code == 200:
             body = resp.json()
             st.session_state.digest_data = body.get("digest", [])
             st.session_state.quiz_data = body.get("quiz", [])
+            st.session_state.source_warnings = body.get("source_warnings", [])
         else:
             try:
                 detail = resp.json().get("detail", resp.text)
@@ -574,7 +590,7 @@ def fetch_with_progress(exam: str, backend: str) -> None:
 
 if generate_btn:
     with st.spinner(""):
-        fetch_with_progress(exam_choice, backend_url)
+        fetch_with_progress(exam_choice, backend_url, data_mode_choice)
     st.rerun()
 
 # ─── Error State ──────────────────────────────────────────────────────────────
@@ -646,9 +662,15 @@ elif st.session_state.pipeline_done and st.session_state.digest_data is not None
         f"{exam_meta.get('icon','📋')} Results — {exam_meta.get('label', st.session_state.exam_type.upper())}"
         f"</h3>"
         f"<p style='color:#64748b;font-size:0.82rem;margin-bottom:1rem;'>"
-        f"Pipeline complete · {len(facts)} facts · {len(quiz)} questions</p>",
+        f"Pipeline complete · {st.session_state.data_mode.title()} mode · {len(facts)} facts · {len(quiz)} questions</p>",
         unsafe_allow_html=True,
     )
+
+    if st.session_state.source_warnings:
+        st.warning(
+            "Some live sources could not be fetched: "
+            + " | ".join(st.session_state.source_warnings[:3])
+        )
 
     summary_cols = st.columns([2, 2, 2], gap="small")
     with summary_cols[0]:

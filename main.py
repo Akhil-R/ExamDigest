@@ -18,6 +18,7 @@ Usage:
     python main.py --exam psc
     python main.py --exam ssc
     python main.py --exam railway
+    python main.py --exam psc --data-mode live
     python main.py --reset-memory
     python main.py --exam psc --reset-memory
 """
@@ -40,6 +41,7 @@ Examples:
   python main.py --exam psc
   python main.py --exam ssc
   python main.py --exam railway
+  python main.py --exam psc --data-mode live
   python main.py --reset-memory
   python main.py --exam psc --reset-memory
         """,
@@ -54,6 +56,12 @@ Examples:
         action="store_true",
         help="Clear the seen_topics.json deduplication memory",
     )
+    parser.add_argument(
+        "--data-mode",
+        choices=["mock", "live"],
+        default=os.getenv("DATA_MODE", "mock"),
+        help="Use deterministic mock data or best-effort free live sources",
+    )
     args = parser.parse_args()
 
     if args.reset_memory:
@@ -61,7 +69,7 @@ Examples:
         print(f"✅  Memory cleared: {path}")
 
     if args.exam:
-        run_pipeline(args.exam)
+        run_pipeline(args.exam, data_mode=args.data_mode)
         print("✅  Workflow completed successfully!")
     elif not args.reset_memory:
         parser.print_help()

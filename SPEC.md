@@ -10,10 +10,10 @@ filter relevance, and rewrite information into study-friendly form.
 affairs summary plus a short quiz without spending hours reading raw news.
 
 ## 2. Project Goal
-Build a Streamlit web application as the primary interface, supported by a secondary CLI driver for developer testing, that produces a daily current affairs digest and quiz for a selected exam category.
+Build a Streamlit web application as the primary interface, supported by a secondary CLI driver for developer testing, that produces a current affairs digest and quiz for a selected exam category. The first version defaults to deterministic mock data for reliable demos and tests, with an opt-in free live-source mode.
 
 A successful run of the application (Streamlit or `python main.py --exam psc` / `ssc` / `railway`) should:
-- Generate a dated digest of 8-12 relevant current affairs items
+- Generate a dated digest of up to 8-12 relevant current affairs items, using available verified items when live public sources return fewer results
 - Format each item as a concise exam-style fact with an explicit source URL
 - Produce 5 multiple-choice questions based on the digest with an answer key
 - Avoid duplicate topics from the recent history (memory-backed dedupe)
@@ -23,8 +23,8 @@ A successful run of the application (Streamlit or `python main.py --exam psc` / 
 The system uses a staged agent workflow with clearly separated responsibilities.
 
 - Web App UI: A Streamlit user interface that allows the user to choose an exam type and triggers the pipeline endpoints on the FastAPI server to show digests and quiz questions.
-- News Collector: fetches recent current affairs content for the selected exam
-  domain using a search or scraping tool
+- News Collector: loads deterministic mock data by default, or fetches best-effort
+  recent current affairs content from free public sources when live mode is enabled
 - Relevance Filter: scores and selects the top 8-12 items based on a syllabus
   keyword map for PSC/SSC/Railway topics
 - Summarizer: rewrites each selected item into a concise exam-ready fact
@@ -37,10 +37,12 @@ This design decouples retrieval, filtering, rewriting, question generation, and
 verification so each stage can be tuned independently.
 
 ## 4. Tools and Data
-- Search/Collector tool: a Google Search or similar news retrieval tool for
-  recent items
+- Search/Collector tool: deterministic mock data for default mode; free public
+  RSS/static pages and GDELT queries for live mode
 - Static syllabus map: JSON-based keyword/tag definitions for PSC, SSC, and
   Railway syllabus topics
+- Static source map: JSON-based live-source query definitions for PSC, SSC, and
+  Railway topics
 - File-backed memory: JSON (or SQLite) storage for seen topics and run history
 - Web App UI: Streamlit application as the primary user interface
 - CLI entrypoint: `main.py` with `--exam` argument for testing/debugging and local outputs
@@ -50,6 +52,8 @@ verification so each stage can be tuned independently.
 - Keep LLM usage efficient: batch-process items instead of one call per article
 - Use the lowest-cost available model or free-tier option for prompt stages
 - Cache raw search results in development to minimize repeated external calls
+- Live mode must remain best-effort and free; no API keys or paid news APIs are
+  required for the first version
 - Do not rely on model fine-tuning; use prompt design, structured tools, and
   verification logic instead
 
@@ -61,7 +65,7 @@ verification so each stage can be tuned independently.
 - No production-grade deployment in the first version; focus on local/cloud demo
 
 ## 7. Success Criteria
-- The project runs end-to-end from search to digest and quiz
+- The project runs end-to-end from mock/live collection to digest and quiz
 - Digest items are relevant, concise, and linked to real sources
 - Quiz questions are generated from the digest content
 - Recent-topic memory prevents repeated topics across multiple runs
@@ -73,6 +77,7 @@ verification so each stage can be tuned independently.
 - `streamlit_app/app.py` for the Streamlit web application
 - `main.py` CLI driver with `--exam` selection for developer testing
 - `data/syllabus_tags.json` for PSC, SSC, Railway topic filtering
+- `data/source_config.json` for free live-source query configuration
 - `data/seen_topics.json` or equivalent memory store
 - Output files such as `digest.md` and `quiz.json`
 - Streamlit app deployed on Streamlit Cloud + CLI outputs
@@ -112,3 +117,12 @@ To run the system locally:
    ```
    Choose the target exam category, and click the generate button to fetch the latest digest and quiz.
 
+To run live free-source mode from the CLI:
+```bash
+python cli/main.py --exam psc --data-mode live
+```
+
+To run live free-source mode from the API:
+```bash
+curl "http://localhost:8000/generate?exam=psc&data_mode=live"
+```

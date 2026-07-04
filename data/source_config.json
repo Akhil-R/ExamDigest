@@ -1,0 +1,29 @@
+{
+  "psc": {
+    "rss_feeds": [],
+    "gdelt_queries": [
+      "Kerala government scheme",
+      "Kerala public service governance",
+      "Kerala infrastructure education health"
+    ],
+    "default_tags": ["Kerala Governance", "State Schemes", "Governance"]
+  },
+  "ssc": {
+    "rss_feeds": [],
+    "gdelt_queries": [
+      "India PIB government scheme",
+      "India economy polity science current affairs",
+      "ISRO RBI Election Commission India"
+    ],
+    "default_tags": ["Polity", "Economy", "General Science", "National Initiatives"]
+  },
+  "railway": {
+    "rss_feeds": [],
+    "gdelt_queries": [
+      "Indian Railways PIB",
+      "railway infrastructure India",
+      "Vande Bharat Kavach Indian Railways"
+    ],
+    "default_tags": ["Transportation", "Railway History", "Infrastructure & Technology"]
+  }
+}

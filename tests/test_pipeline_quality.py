@@ -1,7 +1,14 @@
 import unittest
+from unittest.mock import patch
 
+from agents.live_collector import LiveNewsCollector
 from agents.summarizer import Summarizer
 from agents.quiz import QuizGenerator
+
+try:
+    from server.app import _validate_data_mode
+except ModuleNotFoundError:
+    _validate_data_mode = None
 
 
 class SummarizerQualityTests(unittest.TestCase):
@@ -40,6 +47,55 @@ class QuizGeneratorTests(unittest.TestCase):
         self.assertEqual(len(quiz), 5)
         self.assertTrue(all("question" in question for question in quiz))
         self.assertTrue(all(len(question["options"]) == 4 for question in quiz))
+
+    def test_generate_quiz_returns_empty_list_for_empty_facts(self):
+        generator = QuizGenerator()
+
+        quiz = generator.generate_quiz([])
+
+        self.assertEqual(quiz, [])
+
+
+class LiveNewsCollectorTests(unittest.TestCase):
+    def test_gdelt_articles_are_normalized_and_deduplicated(self):
+        collector = LiveNewsCollector(
+            source_config_path="data/source_config.json",
+            cache_dir="data/cache",
+        )
+        payload = """
+        {
+          "articles": [
+            {"title": "Kerala launches public service reform", "url": "https://example.com/a", "domain": "example.com"},
+            {"title": "Kerala launches public service reform", "url": "https://example.com/a", "domain": "example.com"},
+            {"title": "", "url": "https://example.com/empty", "domain": "example.com"},
+            {"title": "Bad URL", "url": "not-a-url", "domain": "example.com"}
+          ]
+        }
+        """
+
+        with patch.object(collector, "_fetch_text", return_value=payload):
+            articles = collector._collect_gdelt(
+                "Kerala public service",
+                ["Kerala Governance", "State Schemes"],
+            )
+
+        deduped = collector._dedupe_articles(articles)
+        self.assertEqual(len(deduped), 1)
+        self.assertEqual(deduped[0]["title"], "Kerala launches public service reform")
+        self.assertEqual(deduped[0]["url"], "https://example.com/a")
+        self.assertIn("Kerala Governance", deduped[0]["tags"])
+
+
+class ApiValidationTests(unittest.TestCase):
+    @unittest.skipIf(_validate_data_mode is None, "FastAPI is not installed")
+    def test_validate_data_mode_accepts_supported_modes(self):
+        self.assertEqual(_validate_data_mode("mock"), "mock")
+        self.assertEqual(_validate_data_mode("LIVE"), "live")
+
+    @unittest.skipIf(_validate_data_mode is None, "FastAPI is not installed")
+    def test_validate_data_mode_rejects_unknown_mode(self):
+        with self.assertRaises(Exception):
+            _validate_data_mode("paid")
 
 
 if __name__ == "__main__":

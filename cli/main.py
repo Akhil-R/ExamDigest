@@ -37,6 +37,8 @@ def _get_paths() -> dict:
         "outputs": os.path.join(base_dir, "outputs"),
         "syllabus": os.path.join(base_dir, "data", "syllabus_tags.json"),
         "seen_topics": os.path.join(base_dir, "data", "seen_topics.json"),
+        "source_config": os.path.join(base_dir, "data", "source_config.json"),
+        "cache": os.path.join(base_dir, "data", "cache"),
     }
 
 
@@ -49,7 +51,11 @@ def reset_memory() -> str:
     return paths["seen_topics"]
 
 
-def run_pipeline(exam_type: str) -> tuple:
+def run_pipeline(
+    exam_type: str,
+    data_mode: str = "mock",
+    include_metadata: bool = False,
+) -> tuple:
     """Executes the staged agent workflow for the specified exam type.
     
     Workflow: News Collector → Relevance Filter → Summarizer → Critique → Quiz → Memory
@@ -57,6 +63,10 @@ def run_pipeline(exam_type: str) -> tuple:
     Returns:
         Tuple of (verified_facts, quiz_questions)
     """
+    data_mode = (data_mode or "mock").lower()
+    if data_mode not in {"mock", "live"}:
+        raise ValueError("data_mode must be 'mock' or 'live'.")
+
     paths = _get_paths()
 
     # Create directories if they don't exist
@@ -86,14 +96,20 @@ def run_pipeline(exam_type: str) -> tuple:
             seen_topics = []
 
     print(f"\n{'='*55}")
-    print(f"  📋  ExamDigest Pipeline  |  Exam: {exam_type.upper()}")
+    print(f"  📋  ExamDigest Pipeline  |  Exam: {exam_type.upper()}  |  Mode: {data_mode.upper()}")
     print(f"{'='*55}")
 
     # ── Stage 1: News Collector ──────────────────────────────
     print("\n  🔍  Stage 1/5 — News Collection")
-    collector = NewsCollector()
+    collector = NewsCollector(
+        mode=data_mode,
+        source_config_path=paths["source_config"],
+        cache_dir=paths["cache"],
+    )
     raw_articles = collector.collect(exam_type)
     print(f"     Collected {len(raw_articles)} raw articles.")
+    for warning in collector.warnings:
+        print(f"     ⚠  {warning}")
 
     # ── Stage 2: Relevance Filter ────────────────────────────
     print("\n  🏷   Stage 2/5 — Relevance Filtering & Deduplication")
@@ -139,11 +155,22 @@ def run_pipeline(exam_type: str) -> tuple:
     digest_lines = [
         f"# Current Affairs Digest ({exam_type.upper()}) — {today_str}",
         "",
-        "> ⚠  **SIMULATION DEMO**: This digest is generated from mock data for",
-        "> educational and demonstration purposes. It does not represent official",
-        "> exam notifications or real-time news.",
+        f"> Data mode: **{data_mode}**",
         "",
     ]
+    if data_mode == "mock":
+        digest_lines += [
+            "> ⚠  **SIMULATION DEMO**: This digest is generated from mock data for",
+            "> educational and demonstration purposes. It does not represent official",
+            "> exam notifications or real-time news.",
+            "",
+        ]
+    else:
+        digest_lines += [
+            "> ⚠  **LIVE FREE SOURCES**: This digest is generated from public web",
+            "> sources and may be incomplete. Verify each source independently.",
+            "",
+        ]
     if not verified_facts:
         digest_lines.append(
             "No new current affairs relevant to this exam type were found. "
@@ -170,6 +197,13 @@ def run_pipeline(exam_type: str) -> tuple:
     print(f"  📝  Quiz saved   → {quiz_path}")
 
     print(f"\n{'='*55}\n")
+    metadata = {
+        "data_mode": data_mode,
+        "source_warnings": collector.warnings,
+        "raw_article_count": len(raw_articles),
+    }
+    if include_metadata:
+        return verified_facts, quiz, metadata
     return verified_facts, quiz
 
 
@@ -182,6 +216,7 @@ Examples:
   python cli/main.py --exam psc
   python cli/main.py --exam ssc
   python cli/main.py --exam railway
+  python cli/main.py --exam psc --data-mode live
   python cli/main.py --reset-memory
   python cli/main.py --exam psc --reset-memory
         """,
@@ -196,6 +231,12 @@ Examples:
         action="store_true",
         help="Clear the seen_topics.json deduplication memory and exit",
     )
+    parser.add_argument(
+        "--data-mode",
+        choices=["mock", "live"],
+        default=os.getenv("DATA_MODE", "mock"),
+        help="Use deterministic mock data or best-effort free live sources",
+    )
     args = parser.parse_args()
 
     if args.reset_memory:
@@ -203,7 +244,7 @@ Examples:
         print(f"✅  Memory cleared: {path}")
 
     if args.exam:
-        run_pipeline(args.exam)
+        run_pipeline(args.exam, data_mode=args.data_mode)
         print("✅  Workflow completed successfully!")
     elif not args.reset_memory:
         parser.print_help()

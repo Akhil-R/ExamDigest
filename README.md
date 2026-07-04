@@ -1,8 +1,8 @@
 # ExamDigest 📚
 
-> **⚠️ Simulation Notice:** ExamDigest is an **educational demonstration project**. All digest facts
-> and quiz questions are generated from **mock data** and do not represent official exam
-> notifications, live news, or authoritative government sources. Each fact includes a source link
+> **⚠️ Simulation Notice:** ExamDigest is an **educational demonstration project**. It defaults to
+> deterministic **mock data** for reliable demos, and can optionally fetch best-effort free public
+> live sources. It does not represent official exam notifications. Each fact includes a source link
 > — please verify independently before relying on any information for your exam preparation.
 
 A staged AI-agent pipeline that curates **syllabus-relevant current affairs** and generates
@@ -16,6 +16,7 @@ and **Railway (RRB)** exams.
 | Feature | Details |
 |---|---|
 | **Staged Agent Pipeline** | 5 cleanly separated stages: Collect → Filter → Summarise → Verify → Quiz |
+| **Mock + Live Data Modes** | Default deterministic mock data, plus opt-in free live sources via GDELT/public feeds |
 | **Kerala-specific Content** | Vizhinjam Port, KFON, K-Smart, Aksharasree, Kudumbashree & more |
 | **Indian National Affairs** | ISRO Gaganyaan, India Semiconductor Mission, UPS, Kavach, Vande Bharat |
 | **Syllabus Tag Filtering** | Articles scored against PSC / SSC / Railway keyword maps |
@@ -69,7 +70,7 @@ and **Railway (RRB)** exams.
 
 | # | Stage | File | Description |
 |---|-------|------|-------------|
-| 1 | **News Collector** | `agents/collector.py` | Returns mock article database (20 items across PSC/SSC/Railway) |
+| 1 | **News Collector** | `agents/collector.py` | Returns mock article data by default, or free live-source results in live mode |
 | 2 | **Relevance Filter** | `agents/filter.py` | Matches articles to exam syllabus tags; skips seen topics |
 | 3 | **Summariser** | `agents/summarizer.py` | Rewrites each article into a concise, syllabus-relevant fact |
 | 4 | **Critique / Verifier** | `agents/critique.py` | Validates URL protocol, non-empty content, and minimum fact length |
@@ -80,7 +81,9 @@ and **Railway (RRB)** exams.
 | File | Purpose |
 |------|---------|
 | `data/syllabus_tags.json` | Keyword/tag maps for PSC, SSC, and Railway syllabi |
+| `data/source_config.json` | Free live-source query configuration for each exam |
 | `data/seen_topics.json` | Memory store — tracks titles & URLs already shown |
+| `data/cache/` | Local cache for live-source fetches; ignored by git |
 | `outputs/digest.md` | Last generated digest in Markdown format |
 | `outputs/quiz.json` | Last generated quiz in JSON format |
 
@@ -143,6 +146,9 @@ Open your browser at **`http://localhost:8501`**.
 # Run pipeline for Kerala PSC
 python cli/main.py --exam psc
 
+# Run with free live public sources instead of deterministic mock data
+python cli/main.py --exam psc --data-mode live
+
 # Run pipeline for SSC
 python cli/main.py --exam ssc
 
@@ -168,6 +174,7 @@ Output files are saved to `outputs/digest.md` and `outputs/quiz.json`.
 | `GET` | `/health` | Liveness probe |
 | `GET` | `/current-affairs?exam={psc\|ssc\|railway}` | Run pipeline; return digest facts |
 | `GET` | `/quiz?exam={psc\|ssc\|railway}` | Run pipeline; return 5-question quiz |
+| `GET` | `/generate?exam={psc\|ssc\|railway}&data_mode={mock\|live}` | Run with selected data mode |
 | `POST` | `/reset-memory` | Clear `seen_topics.json` dedup memory |
 
 Full interactive docs at `http://localhost:8000/docs` (Swagger UI).
@@ -190,6 +197,7 @@ Full interactive docs at `http://localhost:8000/docs` (Swagger UI).
 ## 🔭 Future Improvements
 
 - **Live News Integration** — Replace mock DB with real Google News / RSS / NewsAPI feeds
+- **More Official Feeds** — Add direct RSS/static-source URLs for PIB, Kerala PRD, ISRO, RBI, and Railways where available
 - **LLM Summarisation** — Use Gemini / GPT-4o to generate dynamic, contextualised summaries
 - **Daily Scheduler** — Cron job to auto-run the pipeline and push digests via email/WhatsApp
 - **User Accounts** — Personalised history, bookmarks, and streak tracking

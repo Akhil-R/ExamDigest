@@ -200,21 +200,7 @@ class QuizGenerator:
         print(f"[QuizGenerator] Generating 5 MCQs based on {len(facts)} digest facts.")
 
         if not facts:
-            return [
-                {
-                    "id": i + 1,
-                    "question": f"Which of the following is the most relevant study takeaway for current affairs preparation?",
-                    "options": [
-                        "Review the event and its policy impact.",
-                        "Ignore the event unless it is trending online.",
-                        "Memorize only the headline without context.",
-                        "Focus only on unrelated history topics.",
-                    ],
-                    "correct_answer": "Review the event and its policy impact.",
-                    "explanation": "Exam preparation is stronger when you connect current affairs to policy, governance, and relevance.",
-                }
-                for i in range(5)
-            ]
+            return []
 
         # Evenly sample 5 indices spread across the full facts list
         n = len(facts)
@@ -257,4 +243,3 @@ class QuizGenerator:
             )
 
         return questions
-
