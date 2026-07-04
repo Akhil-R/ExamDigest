@@ -98,12 +98,12 @@ To run the system locally:
 1. **Start the FastAPI server**:
    From the project root, run:
    ```bash
-   uv run uvicorn server.app:app --host 127.0.0.1 --port 8000
+   uv run python -m uvicorn server.app:app --host 127.0.0.1 --port 8000
    ```
 2. **Start the Streamlit application**:
    In a separate terminal window, run:
    ```bash
-   uv run streamlit run streamlit_app/app.py
+   uv run python -m streamlit run streamlit_app/app.py
    ```
 3. **Access the application**:
    Open your browser and navigate to:

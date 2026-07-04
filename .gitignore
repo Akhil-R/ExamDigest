@@ -10,5 +10,6 @@ venv/
 .pytest_cache/
 .mypy_cache/
 .ipynb_checkpoints/
+.agents/
 outputs/*.md
 outputs/*.json

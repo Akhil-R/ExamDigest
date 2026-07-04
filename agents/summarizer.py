@@ -14,23 +14,38 @@
 
 from typing import List, Dict, Any
 
+
 class Summarizer:
-    """Mock Summarizer stage.
-    
+    """Summarizer stage.
+
     Summarizes raw filtered articles into structured exam-ready facts.
     """
+
     def summarize(self, articles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Rewrites news items into concise exam-style facts."""
+        """Rewrites news items into concise exam-style facts with a clear takeaway."""
         print(f"[Summarizer] Summarizing {len(articles)} articles into exam-ready facts.")
         facts = []
         for index, article in enumerate(articles, 1):
-            # Create a mock summarized exam fact
-            fact_text = f"Exam Fact {index}: {article['content']} This is crucial for general studies preparation."
-            facts.append({
-                "id": index,
-                "title": article["title"],
-                "fact": fact_text,
-                "source_url": article["url"],
-                "tags": article["tags"]
-            })
+            content = article.get("content", "").strip()
+            tags = article.get("tags", []) or []
+            topic_tags = ", ".join(tags[:3]) if tags else "general current affairs"
+
+            if not content:
+                content = "The development is relevant for exam preparation and should be reviewed in detail."
+
+            summary = content.split(".")[0].strip()
+            if len(summary) > 120:
+                summary = summary[:117].rstrip() + "..."
+
+            fact_text = f"{summary} Why it matters: relevant to {topic_tags}."
+            fact_text = " ".join(fact_text.split())
+            facts.append(
+                {
+                    "id": index,
+                    "title": article["title"],
+                    "fact": fact_text,
+                    "source_url": article["url"],
+                    "tags": tags,
+                }
+            )
         return facts

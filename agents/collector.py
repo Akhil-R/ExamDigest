@@ -23,102 +23,130 @@ class NewsCollector:
     def __init__(self):
         # A list of mock news articles for testing
         self.mock_db = [
-            # PSC items
+            # PSC (including Kerala Specific) items
+            {
+                "title": "Vizhinjam International Seaport Commissions Phase-1 Operations",
+                "content": "India's first deepwater transshipment port at Vizhinjam, Kerala, has officially commenced commercial operations. Managed by Adani Ports in partnership with the Government of Kerala, the port has successfully received its first mothership, positioning India as a global maritime hub.",
+                "url": "https://kerala.gov.in/press-release/vizhinjam-seaport-phase1",
+                "tags": ["State Infrastructure", "Kerala Governance", "Transportation"]
+            },
+            {
+                "title": "Kerala Fiber Optic Network (KFON) Launches Phase-2 Expansion",
+                "content": "The Kerala Government has launched the second phase of KFON, aiming to extend free high-speed internet connectivity to an additional 20,000 below-poverty-line (BPL) families and over 5,000 government offices across rural districts, promoting digital inclusion.",
+                "url": "https://kerala.gov.in/press-release/kfon-phase2-expansion",
+                "tags": ["Kerala Governance", "State Schemes", "State Infrastructure"]
+            },
+            {
+                "title": "Kerala's K-Smart Application Launched for Unified Local Body Services",
+                "content": "The Local Self Government Department of Kerala has introduced K-Smart (Kerala Solution for Managing Administrative Reformation and Transformation) to digitize all services across local bodies, including birth certificates, building permits, and trade licenses, onto a single app.",
+                "url": "https://kerala.gov.in/press-release/ksmart-local-bodies",
+                "tags": ["Kerala Governance", "State Schemes", "Governance"]
+            },
+            {
+                "title": "India's First Digital Science Park Commences in Trivandrum",
+                "content": "The foundation stone was laid for India's first Digital Science Park in Thiruvananthapuram, Kerala. The project focuses on research and industry-academy collaboration in artificial intelligence, robotics, cybersecurity, and smart hardware.",
+                "url": "https://kerala.gov.in/press-release/trivandrum-digital-science-park",
+                "tags": ["Kerala Governance", "Literacy & Education", "State Infrastructure"]
+            },
+            {
+                "title": "Kerala Literacy Mission Announces 'Aksharasree' Program Expansion",
+                "content": "The State Literacy Mission Authority has extended its 'Aksharasree' continuing education project to tribal colonies and remote coastal areas, offering equivalency courses up to the higher secondary level for adults.",
+                "url": "https://kerala.gov.in/press-release/aksharasree-literacy-mission",
+                "tags": ["Kerala Governance", "Literacy & Education", "State Schemes"]
+            },
+            {
+                "title": "Kudumbashree Enterprise Launches Haritha Karma Sena Waste Units",
+                "content": "Kerala's Kudumbashree network has partnered with local panchayats to scale Haritha Karma Sena units. The initiative provides green employment to women while implementing scientific solid-waste management and recycling protocols state-wide.",
+                "url": "https://kerala.gov.in/press-release/kudumbashree-haritha-karma-sena",
+                "tags": ["Kerala Governance", "State Schemes", "Governance"]
+            },
             {
                 "title": "Supreme Court Rules on Center-State Financial Devolution",
-                "content": "In a landmark judgment, the Supreme Court clarified the constitutional boundaries of financial devolution between the Central Government and State Governments, highlighting the essence of fiscal federalism.",
-                "url": "https://example.com/sc-federalism-devolution",
+                "content": "In a landmark judgment, the Supreme Court clarified the constitutional boundaries of financial devolution between the Central Government and State Governments, highlighting the essence of fiscal federalism under Article 280.",
+                "url": "https://pib.gov.in/press-release/sc-financial-devolution-judgment",
                 "tags": ["Constitution", "Federalism", "State Policy"]
             },
             {
                 "title": "State Government Announces Administrative Reforms Commission",
-                "content": "To streamline public service delivery, a new Administrative Reforms Commission has been formed to recommend governance measures and restructuring of civil services.",
-                "url": "https://example.com/admin-reforms-commission",
+                "content": "To streamline public service delivery, a new Administrative Reforms Commission has been formed by the state government to recommend governance measures and restructuring of civil services to reduce red tape.",
+                "url": "https://kerala.gov.in/press-release/administrative-reforms-commission",
                 "tags": ["Public Administration", "Governance"]
             },
-            {
-                "title": "Amendment to Civil Services Conduct Rules Proposed",
-                "content": "The government has proposed an amendment to the civil services conduct rules to improve digital transparency and public administration efficiency.",
-                "url": "https://example.com/civil-services-rules",
-                "tags": ["Constitution", "Public Administration"]
-            },
-            {
-                "title": "Inter-State Council Meets to Discuss Border Infrastructure",
-                "content": "The Inter-State Council convened to discuss coordinating infrastructure developments and security policies across borders, cementing cooperative federalism principles.",
-                "url": "https://example.com/inter-state-council-meet",
-                "tags": ["Federalism", "Governance"]
-            },
             
-            # SSC items
+            # SSC (Indian National Current Affairs, History, Polity, Geography) items
             {
-                "title": "Archaeologists Discover Indus Valley Site in Western India",
-                "content": "A team of researchers discovered a new Harappan-era settlement with advanced water harvesting systems, contributing to historical knowledge of the Indus Valley Civilization.",
-                "url": "https://example.com/indus-valley-discovery",
+                "title": "ISRO Gaganyaan Crew Module Escape System Test Successful",
+                "content": "The Indian Space Research Organisation (ISRO) successfully conducted the Test Vehicle Abort Mission (TV-D1) for the Gaganyaan project, demonstrating the crew module's escape system capabilities under high-altitude abort conditions.",
+                "url": "https://isro.gov.in/press-release/gaganyaan-tv-d1-success",
+                "tags": ["General Science", "National Initiatives", "Polity"]
+            },
+            {
+                "title": "India Semiconductor Mission: Micron's First Fab Plant Tabled in Gujarat",
+                "content": "Under the India Semiconductor Mission (ISM), construction of the country's first commercial semiconductor assembly and test facility has commenced in Sanand, Gujarat, boosting domestic electronics manufacturing and economy.",
+                "url": "https://pib.gov.in/press-release/semiconductor-mission-sanand-fab",
+                "tags": ["Economy", "National Initiatives", "General Science"]
+            },
+            {
+                "title": "Union Cabinet Approves Unified Pension Scheme (UPS)",
+                "content": "The Union Cabinet has approved the Unified Pension Scheme (UPS) for central government employees. It guarantees 50% of the average basic pay drawn in the last 12 months before retirement as a pension, combining features of NPS and OPS.",
+                "url": "https://pib.gov.in/press-release/unified-pension-scheme-approved",
+                "tags": ["Polity", "National Initiatives", "Economy"]
+            },
+            {
+                "title": "Electoral Integrity Reform Bill Tabled in Lok Sabha",
+                "content": "A new Electoral Integrity Reform Bill has been introduced in Parliament, proposing linking of voter IDs with Aadhaar on a voluntary basis, and implementing a single voter list for local, state, and parliamentary elections.",
+                "url": "https://pib.gov.in/press-release/electoral-integrity-bill-parliament",
+                "tags": ["Polity", "Constitution", "History"]
+            },
+            {
+                "title": "Archaeologists Discover Harappan-Era Water Systems in Rakhigarhi",
+                "content": "Excavations at the Harappan site of Rakhigarhi in Haryana have uncovered an intricate network of burnt-brick drainage channels and terracotta water pipes, indicating sophisticated city planning during the Indus Valley Civilization.",
+                "url": "https://pib.gov.in/press-release/rakhigarhi-harappan-drainage-find",
                 "tags": ["History", "Geography"]
             },
             {
-                "title": "Annual Monsoon Performance Report Released",
-                "content": "The meteorological department released its reports on spatial distribution of monsoon rainfall, indicating changes in geographic patterns and agrarian impacts.",
-                "url": "https://example.com/monsoon-geography-report",
+                "title": "IMD Releases Report on Monsoon Patterns Over Western Ghats",
+                "content": "The India Meteorological Department (IMD) published a decadal study revealing shifting precipitation zones and increased instances of extreme rainfall events over the micro-regions of the Western Ghats mountain range.",
+                "url": "https://pib.gov.in/press-release/imd-monsoon-western-ghats-report",
                 "tags": ["Geography", "General Science"]
             },
-            {
-                "title": "Global Innovation Index 2026: India Ranks 38th",
-                "content": "India has climbed to the 38th position in the Global Innovation Index, led by strong performance in general science education and digital services export.",
-                "url": "https://example.com/global-innovation-index",
-                "tags": ["General Science", "Polity"]
-            },
-            {
-                "title": "New Bill on Electoral Integrity Tabled in Parliament",
-                "content": "Parliament initiated discussions on a new electoral reform bill aimed at reducing proxy voting and enhancing democratic representation.",
-                "url": "https://example.com/electoral-bill-parliament",
-                "tags": ["Polity", "History"]
-            },
             
-            # Railway items
+            # Railway (Transportation, Railway History, Tech) items
             {
-                "title": "Indian Railways Completes 100% Electrification of Golden Quadrilateral",
-                "content": "The Ministry of Railways announced the complete electrification of the Golden Quadrilateral routes, marking a massive milestone in railway history and transportation efficiency.",
-                "url": "https://example.com/railway-electrification-complete",
+                "title": "Indian Railways Achieves 100% Electrification of Golden Quadrilateral",
+                "content": "The Ministry of Railways announced the complete electrification of the Golden Quadrilateral routes (connecting Delhi, Mumbai, Chennai, and Kolkata), achieving a reduction in carbon emissions and fuel costs.",
+                "url": "https://pib.gov.in/press-release/railway-golden-quadrilateral-electrification",
+                "tags": ["Railway History", "Transportation", "Infrastructure & Technology"]
+            },
+            {
+                "title": "Vande Bharat Sleeper Coach Prototype Unveiled by BEML",
+                "content": "The prototype of the much-awaited Vande Bharat Sleeper train was unveiled in Bengaluru. Designed by BEML, the train is built for long-distance overnight travel with crashworthy designs and advanced passenger comfort features.",
+                "url": "https://pib.gov.in/press-release/vande-bharat-sleeper-prototype-unveiled",
+                "tags": ["Transportation", "Infrastructure & Technology", "General Awareness"]
+            },
+            {
+                "title": "Kavach 4.0 Automatic Train Protection Deployed on High-Density Routes",
+                "content": "Indian Railways has commenced the field deployment of Kavach 4.0, its indigenous Automatic Train Protection (ATP) system. The system automatically applies brakes if the driver fails to react, preventing head-on collisions.",
+                "url": "https://pib.gov.in/press-release/kavach-train-protection-deployment",
+                "tags": ["Transportation", "Infrastructure & Technology", "General Science"]
+            },
+            {
+                "title": "India's First Hydrogen-Powered Train Trial Scheduled on Jind-Sonipat Route",
+                "content": "The Northern Railway zone is set to conduct trials of India's first hydrogen fuel cell-powered passenger train on the Jind-Sonipat section in Haryana, promoting zero-emission green transportation.",
+                "url": "https://pib.gov.in/press-release/hydrogen-train-trials-jind-sonipat",
+                "tags": ["Transportation", "Infrastructure & Technology", "General Science"]
+            },
+            {
+                "title": "Historic Nilgiri Mountain Railway Inducts Custom Steam Locomotive",
+                "content": "The Golden Rock Workshop of Southern Railway has manufactured and delivered a new coal-fired steam locomotive engine to the Nilgiri Mountain Railway (NMR), preserving the heritage status of this UNESCO World Heritage Site.",
+                "url": "https://pib.gov.in/press-release/nilgiri-mountain-railway-steam-loco",
                 "tags": ["Railway History", "Transportation"]
             },
             {
-                "title": "Bullet Train Project Trial Run Scheduled for Late 2026",
-                "content": "The first high-speed rail corridor trials are scheduled, bringing state-of-the-art Japanese Shinkansen technology to the country's transport system.",
-                "url": "https://example.com/bullet-train-trial-run",
-                "tags": ["Transportation", "General Awareness"]
-            },
-            {
-                "title": "Vande Bharat Sleeper Coach Prototype Unveiled",
-                "content": "The government unveiled the prototype for Vande Bharat sleeper trains designed for overnight long-distance travel, elevating passenger comfort and rail technology.",
-                "url": "https://example.com/vande-bharat-sleeper-prototype",
-                "tags": ["Transportation", "Railway History"]
-            },
-            {
-                "title": "ISRO Partners with Indian Railways for Real-Time Train Tracking",
-                "content": "ISRO satellite telemetry will now power real-time train tracking and automatic signaling, showcasing a strong integration of general science with transport management.",
-                "url": "https://example.com/isro-railway-tracking",
-                "tags": ["General Science", "Transportation", "General Awareness"]
-            },
-            
-            # Additional items that overlap/extra
-            {
-                "title": "National Science Day Focuses on Indigenous Technologies",
-                "content": "This year's theme for National Science Day is 'Indigenous Technologies for Viksit Bharat', highlighting achievements in space exploration and green energy.",
-                "url": "https://example.com/national-science-day",
-                "tags": ["General Science", "General Awareness"]
-            },
-            {
-                "title": "New Green Hydrogen Plant Inaugurated in Gujarat",
-                "content": "The country's largest green hydrogen production facility was inaugurated to power logistics and heavy transport, supporting ecological goals.",
-                "url": "https://example.com/green-hydrogen-plant",
-                "tags": ["General Science", "Transportation"]
-            },
-            {
-                "title": "Government Launches Digital Library for Ancient Indian Manuscripts",
-                "content": "A new cloud-based digital portal has launched, housing high-resolution scans of over 50,000 ancient manuscripts, promoting historical research.",
-                "url": "https://example.com/ancient-manuscripts-portal",
-                "tags": ["History", "General Awareness"]
+                "title": "ISRO and Indian Railways Partner for Real-Time Satellite Tracking",
+                "content": "Real-time train information system (RTIS) devices powered by ISRO's GSAT satellites have been installed on over 10,000 locomotives, providing automatic train tracking and arrival/departure updates at stations.",
+                "url": "https://isro.gov.in/press-release/isro-railways-rtis-satellite-tracking",
+                "tags": ["General Science", "Transportation", "Infrastructure & Technology"]
             }
         ]
 

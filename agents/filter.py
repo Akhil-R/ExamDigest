@@ -51,5 +51,9 @@ class RelevanceFilter:
         
         # Limit to the max constraint (8-12 items)
         result = filtered_articles[:max_items]
+        if len(result) < min_items:
+            print(
+                f"[RelevanceFilter] Only {len(result)} articles remain after filtering; using the available items."
+            )
         print(f"[RelevanceFilter] Filter complete. Returning {len(result)} articles (min={min_items}, max={max_items}).")
         return result
