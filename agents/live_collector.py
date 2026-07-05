@@ -52,6 +52,10 @@ class LiveNewsCollector:
             query_articles = self._collect_gdelt(gdelt_queries[0], default_tags)
             if query_articles:
                 articles.extend(query_articles)
+            elif not articles:
+                self.warnings.append(
+                    "Live source degraded: GDELT returned no usable articles for this query."
+                )
 
         return self._dedupe_articles(articles)
 
@@ -102,8 +106,6 @@ class LiveNewsCollector:
             payload = self._fetch_text(url)
             body = json.loads(payload)
         except urllib.error.HTTPError as exc:
-            if exc.code == 429:
-                return []
             self.warnings.append(f"GDELT query failed: {query} ({exc})")
             return []
         except Exception as exc:
