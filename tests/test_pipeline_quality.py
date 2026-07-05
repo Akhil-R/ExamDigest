@@ -85,6 +85,34 @@ class LiveNewsCollectorTests(unittest.TestCase):
         self.assertEqual(deduped[0]["url"], "https://example.com/a")
         self.assertIn("Kerala Governance", deduped[0]["tags"])
 
+    def test_collect_stops_after_first_successful_gdelt_query(self):
+        collector = LiveNewsCollector(
+            source_config_path="data/source_config.json",
+            cache_dir="data/cache",
+        )
+        config = {
+            "rss_feeds": [],
+            "gdelt_queries": ["first query", "second query"],
+            "default_tags": ["State Schemes"],
+        }
+        first_result = [
+            {
+                "title": "Kerala launches a public service scheme",
+                "content": "The state government launched a new scheme.",
+                "url": "https://example.com/kerala-scheme",
+                "tags": ["State Schemes"],
+            }
+        ]
+
+        with patch.object(collector, "_load_exam_config", return_value=config), patch.object(
+            collector, "_collect_gdelt", side_effect=[first_result, []]
+        ) as mock_collect_gdelt:
+            articles = collector.collect("psc")
+
+        self.assertEqual(len(articles), 1)
+        self.assertEqual(mock_collect_gdelt.call_count, 1)
+        self.assertEqual(mock_collect_gdelt.call_args_list[0].args[0], "first query")
+
 
 class ApiValidationTests(unittest.TestCase):
     @unittest.skipIf(_validate_data_mode is None, "FastAPI is not installed")

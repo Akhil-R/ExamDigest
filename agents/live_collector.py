@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -41,16 +42,16 @@ class LiveNewsCollector:
         self.warnings = []
         config = self._load_exam_config(exam_type)
         articles: List[Dict[str, Any]] = []
+        default_tags = config.get("default_tags", [])
 
         for feed_url in config.get("rss_feeds", []):
-            articles.extend(
-                self._collect_rss_feed(feed_url, config.get("default_tags", []))
-            )
+            articles.extend(self._collect_rss_feed(feed_url, default_tags))
 
-        for query in config.get("gdelt_queries", []):
-            articles.extend(
-                self._collect_gdelt(query, config.get("default_tags", []))
-            )
+        gdelt_queries = config.get("gdelt_queries", [])
+        if gdelt_queries:
+            query_articles = self._collect_gdelt(gdelt_queries[0], default_tags)
+            if query_articles:
+                articles.extend(query_articles)
 
         return self._dedupe_articles(articles)
 
@@ -100,6 +101,11 @@ class LiveNewsCollector:
         try:
             payload = self._fetch_text(url)
             body = json.loads(payload)
+        except urllib.error.HTTPError as exc:
+            if exc.code == 429:
+                return []
+            self.warnings.append(f"GDELT query failed: {query} ({exc})")
+            return []
         except Exception as exc:
             self.warnings.append(f"GDELT query failed: {query} ({exc})")
             return []
