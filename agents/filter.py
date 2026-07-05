@@ -1,25 +1,20 @@
-# Copyright (c) 2026 MyCompany LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-from typing import List, Dict, Any, Set
+from typing import List, Dict, Any, Set, AsyncGenerator
+from google.adk.agents import BaseAgent
+from google.adk.agents.invocation_context import InvocationContext
+from google.adk.events import Event
 
-class RelevanceFilter:
+class RelevanceFilter(BaseAgent):
     """Mock Relevance Filter stage.
     
     Scores and filters collected articles based on syllabus tags and checks them
     against the seen topics history (memory) to avoid duplicates.
     """
+    name: str = "filter"
+
+    def __init__(self, name: str = "filter", **kwargs):
+        super().__init__(name=name, **kwargs)
+
     def filter(
         self, 
         articles: List[Dict[str, Any]], 
@@ -57,3 +52,13 @@ class RelevanceFilter:
             )
         print(f"[RelevanceFilter] Filter complete. Returning {len(result)} articles (min={min_items}, max={max_items}).")
         return result
+
+    async def _run_async_impl(self, ctx: InvocationContext) -> AsyncGenerator[Event, None]:
+        raw_articles = ctx.session.state.get("raw_articles", [])
+        syllabus_tags = ctx.session.state.get("syllabus_tags", [])
+        seen_topics = ctx.session.state.get("seen_topics", [])
+        filtered_articles = self.filter(raw_articles, syllabus_tags, seen_topics)
+        yield Event(
+            author=self.name,
+            state={"filtered_articles": filtered_articles}
+        )

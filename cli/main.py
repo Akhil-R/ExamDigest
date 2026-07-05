@@ -1,16 +1,3 @@
-# Copyright (c) 2026 MyCompany LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import argparse
 import json
@@ -20,6 +7,12 @@ from datetime import datetime
 
 # Adjust path to import from workspace root
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import asyncio
+from google.genai import types
+from google.adk.agents import SequentialAgent
+from google.adk.runners import Runner
+from google.adk.sessions import InMemorySessionService
 
 from agents.collector import NewsCollector
 from agents.filter import RelevanceFilter
@@ -99,42 +92,79 @@ def run_pipeline(
     print(f"  📋  ExamDigest Pipeline  |  Exam: {exam_type.upper()}  |  Mode: {data_mode.upper()}")
     print(f"{'='*55}")
 
-    # ── Stage 1: News Collector ──────────────────────────────
-    print("\n  🔍  Stage 1/5 — News Collection")
+    # Instantiate stages as ADK Agents
     collector = NewsCollector(
+        name="collector",
         mode=data_mode,
         source_config_path=paths["source_config"],
         cache_dir=paths["cache"],
     )
-    raw_articles = collector.collect(exam_type)
+    r_filter = RelevanceFilter(name="filter")
+    summarizer = Summarizer(name="summarizer")
+    critique = CritiqueAgent(name="critique")
+    quiz_generator = QuizGenerator(name="quiz")
+
+    # Compose them in a Sequential Agent
+    pipeline_agent = SequentialAgent(
+        name="exam_digest_pipeline",
+        sub_agents=[collector, r_filter, summarizer, critique, quiz_generator],
+    )
+
+    session_service = InMemorySessionService()
+
+    async def _execute():
+        # Inject initial state through create_session so ADK persists it properly
+        await session_service.create_session(
+            app_name="app",
+            user_id="user",
+            session_id="s1",
+            state={
+                "exam_type": exam_type,
+                "syllabus_tags": exam_tags,
+                "seen_topics": seen_topics,
+            },
+        )
+
+        runner = Runner(agent=pipeline_agent, app_name="app", session_service=session_service)
+
+        # Drive execution with a dummy user message
+        new_msg = types.Content(role="user", parts=[types.Part.from_text(text="run")])
+
+        print("\n  🔍  Stage 1/5 — News Collection")
+        async for _event in runner.run_async(user_id="user", session_id="s1", new_message=new_msg):
+            pass
+
+        # Retrieve the final persisted state
+        updated_session = await session_service.get_session(app_name="app", user_id="user", session_id="s1")
+        return updated_session.state
+
+    # Execute the async loop
+    final_state = asyncio.run(_execute())
+
+    # Extract output values
+    raw_articles = final_state.get("raw_articles", [])
+    source_warnings = final_state.get("source_warnings", [])
+    filtered_articles = final_state.get("filtered_articles", [])
+    digest_facts = final_state.get("digest_facts", [])
+    verified_facts = final_state.get("verified_facts", [])
+    quiz = final_state.get("quiz", [])
+
     print(f"     Collected {len(raw_articles)} raw articles.")
-    for warning in collector.warnings:
+    for warning in source_warnings:
         print(f"     ⚠  {warning}")
 
-    # ── Stage 2: Relevance Filter ────────────────────────────
     print("\n  🏷   Stage 2/5 — Relevance Filtering & Deduplication")
-    r_filter = RelevanceFilter()
-    filtered_articles = r_filter.filter(raw_articles, exam_tags, seen_topics)
     print(f"     {len(filtered_articles)} articles passed filter.")
 
-    # ── Stage 3: Summarizer ──────────────────────────────────
     print("\n  ✍   Stage 3/5 — Fact Summarization")
-    summarizer = Summarizer()
-    digest_facts = summarizer.summarize(filtered_articles)
     if not digest_facts and filtered_articles:
         print("     No facts were produced after filtering; using the available items as a fallback.")
     print(f"     Generated {len(digest_facts)} exam-ready facts.")
 
-    # ── Stage 4: Critique / Verifier ─────────────────────────
     print("\n  🔎  Stage 4/5 — Quality Verification")
-    critique = CritiqueAgent()
-    verified_facts = critique.verify(digest_facts)
     print(f"     {len(verified_facts)}/{len(digest_facts)} facts approved.")
 
-    # ── Stage 5: Quiz Generator ──────────────────────────────
     print("\n  ❓  Stage 5/5 — Quiz Generation")
-    quiz_generator = QuizGenerator()
-    quiz = quiz_generator.generate_quiz(verified_facts)
     print(f"     Generated {len(quiz)} MCQ questions.")
 
     # ── Memory Update ────────────────────────────────────────

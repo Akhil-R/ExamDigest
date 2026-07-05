@@ -1,29 +1,21 @@
-# Copyright (c) 2026 MyCompany LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+from typing import List, Dict, Any, AsyncGenerator
+from pydantic import PrivateAttr
+from google.adk.agents import BaseAgent
+from google.adk.agents.invocation_context import InvocationContext
+from google.adk.events import Event
 
-from typing import List, Dict, Any
-
-
-class QuizGenerator:
+class QuizGenerator(BaseAgent):
     """Quiz Generator stage.
 
     Generates 5 multiple-choice questions based on final verified digest facts.
     """
+    name: str = "quiz"
 
-    def __init__(self):
-        # A lookup table mapping article titles to realistic questions
-        self.question_db = {
+    _question_db: Dict[str, Any] = PrivateAttr()
+
+    def __init__(self, name: str = "quiz", **kwargs):
+        super().__init__(name=name, **kwargs)
+        self._question_db = {
             "Vizhinjam International Seaport Commissions Phase-1 Operations": {
                 "question": "Which state in India is home to the Vizhinjam International Seaport, which recently commissioned its Phase-1 operations?",
                 "options": ["Kerala", "Tamil Nadu", "Karnataka", "Andhra Pradesh"],
@@ -243,3 +235,15 @@ class QuizGenerator:
             )
 
         return questions
+
+    @property
+    def question_db(self) -> Dict[str, Any]:
+        return self._question_db
+
+    async def _run_async_impl(self, ctx: InvocationContext) -> AsyncGenerator[Event, None]:
+        verified_facts = ctx.session.state.get("verified_facts", [])
+        quiz = self.generate_quiz(verified_facts)
+        yield Event(
+            author=self.name,
+            state={"quiz": quiz}
+        )

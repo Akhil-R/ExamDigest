@@ -1,18 +1,9 @@
-# Copyright (c) 2026 MyCompany LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, AsyncGenerator, ClassVar
+from pydantic import PrivateAttr
+from google.adk.agents import BaseAgent
+from google.adk.agents.invocation_context import InvocationContext
+from google.adk.events import Event
 
 from agents.live_collector import LiveNewsCollector
 
@@ -158,22 +149,39 @@ class MockNewsCollector:
         return self.mock_db
 
 
-class NewsCollector:
+class NewsCollector(BaseAgent):
     """Mode-aware collector that supports deterministic mock data and free live data."""
 
-    VALID_MODES = {"mock", "live"}
+    name: str = "collector"
+    mode: str = "mock"
+    source_config_path: str | None = None
+    cache_dir: str | None = None
+
+    _collector: Any = PrivateAttr(default=None)
+    _warnings: List[str] = PrivateAttr(default_factory=list)
+
+    VALID_MODES: ClassVar[set[str]] = {"mock", "live"}
 
     def __init__(
         self,
+        name: str = "collector",
         mode: str = "mock",
         source_config_path: str | None = None,
         cache_dir: str | None = None,
+        **kwargs
     ):
+        super().__init__(
+            name=name,
+            mode=mode,
+            source_config_path=source_config_path,
+            cache_dir=cache_dir,
+            **kwargs
+        )
         self.mode = (mode or "mock").lower()
         if self.mode not in self.VALID_MODES:
             raise ValueError(f"Invalid data mode '{mode}'. Expected one of: {sorted(self.VALID_MODES)}")
 
-        self.warnings: List[str] = []
+        self._warnings = []
         if self.mode == "live":
             if not source_config_path or not cache_dir:
                 raise ValueError("Live mode requires source_config_path and cache_dir.")
@@ -184,5 +192,17 @@ class NewsCollector:
     def collect(self, exam_type: str) -> List[Dict[str, Any]]:
         """Collect articles using the configured data mode."""
         articles = self._collector.collect(exam_type)
-        self.warnings = getattr(self._collector, "warnings", [])
+        self._warnings = getattr(self._collector, "warnings", [])
         return articles
+
+    @property
+    def warnings(self) -> List[str]:
+        return self._warnings
+
+    async def _run_async_impl(self, ctx: InvocationContext) -> AsyncGenerator[Event, None]:
+        exam_type = ctx.session.state.get("exam_type", "psc")
+        articles = self.collect(exam_type)
+        yield Event(
+            author=self.name,
+            state={"raw_articles": articles, "source_warnings": self._warnings}
+        )

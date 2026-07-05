@@ -1,25 +1,18 @@
-# Copyright (c) 2026 MyCompany LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, AsyncGenerator
+from google.adk.agents import BaseAgent
+from google.adk.agents.invocation_context import InvocationContext
+from google.adk.events import Event
 
-
-class Summarizer:
+class Summarizer(BaseAgent):
     """Summarizer stage.
 
     Summarizes raw filtered articles into structured exam-ready facts.
     """
+    name: str = "summarizer"
+
+    def __init__(self, name: str = "summarizer", **kwargs):
+        super().__init__(name=name, **kwargs)
 
     def summarize(self, articles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Rewrites news items into concise exam-style facts with a clear takeaway."""
@@ -49,3 +42,12 @@ class Summarizer:
                 }
             )
         return facts
+
+    async def _run_async_impl(self, ctx: InvocationContext) -> AsyncGenerator[Event, None]:
+        filtered_articles = ctx.session.state.get("filtered_articles", [])
+        digest_facts = self.summarize(filtered_articles)
+        yield Event(
+            author=self.name,
+            state={"digest_facts": digest_facts}
+        )
+
