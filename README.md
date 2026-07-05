@@ -194,13 +194,13 @@ Full interactive docs at `http://localhost:8000/docs` (Swagger UI).
 
 ## 📸 Screenshots
 
-> Streamlit app deployment status: the project is not currently deployed to Streamlit Cloud from this workspace. The screenshots below are placeholders until a public deployment is available.
+> Local preview is available at http://127.0.0.1:8501 while the app is running. A public Streamlit Cloud deployment is not configured from this workspace yet, so the screenshots below reflect the current local UI until a hosted deployment is created.
 
 | View | Description |
 |------|-------------|
-| `screenshots/hero.png` | Home screen with exam selector |
-| `screenshots/digest.png` | Study Digest tab with fact cards |
-| `screenshots/quiz.png` | Practice Quiz with answer selection |
+| `screenshots/streamlit_home.png` | Home screen with exam selector and configuration sidebar |
+| `screenshots/digest.png` | Study Digest tab with fact cards and source-linked results |
+| `screenshots/quiz.png` | Practice Quiz with answer selection and explanations |
 | `screenshots/score.png` | Score banner after quiz submission |
 
 ---

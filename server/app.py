@@ -113,6 +113,7 @@ def generate(
         facts, quiz, metadata = run_pipeline(
             exam_lower, data_mode=mode_lower, include_metadata=True
         )
+        live_degraded = bool(metadata.get("source_warnings")) and mode_lower == "live"
         return {
             "exam": exam_lower,
             "exam_label": EXAM_LABELS[exam_lower],
@@ -121,6 +122,11 @@ def generate(
             "fact_count": len(facts),
             "question_count": len(quiz),
             "source_warnings": metadata["source_warnings"],
+            "live_degraded": live_degraded,
+            "notice": (
+                "Live source data was degraded or partial; showing available cached or fallback results."
+                if live_degraded else ""
+            ),
             "disclaimer": (
                 "⚠  SIMULATION: Mock mode uses demo content. Live mode uses free public sources and may be incomplete."
             ),
@@ -161,6 +167,7 @@ def get_current_affairs(
         facts, _, metadata = run_pipeline(
             exam_lower, data_mode=mode_lower, include_metadata=True
         )
+        live_degraded = bool(metadata.get("source_warnings")) and mode_lower == "live"
         return {
             "exam": exam_lower,
             "exam_label": EXAM_LABELS[exam_lower],
@@ -168,6 +175,11 @@ def get_current_affairs(
             "status": "success",
             "fact_count": len(facts),
             "source_warnings": metadata["source_warnings"],
+            "live_degraded": live_degraded,
+            "notice": (
+                "Live source data was degraded or partial; showing available cached or fallback results."
+                if live_degraded else ""
+            ),
             "disclaimer": (
                 "⚠  SIMULATION: Mock mode uses demo content. Live mode uses free public sources and may be incomplete."
             ),
@@ -199,6 +211,7 @@ def get_quiz(
         _, quiz, metadata = run_pipeline(
             exam_lower, data_mode=mode_lower, include_metadata=True
         )
+        live_degraded = bool(metadata.get("source_warnings")) and mode_lower == "live"
         return {
             "exam": exam_lower,
             "exam_label": EXAM_LABELS[exam_lower],
@@ -206,6 +219,11 @@ def get_quiz(
             "status": "success",
             "question_count": len(quiz),
             "source_warnings": metadata["source_warnings"],
+            "live_degraded": live_degraded,
+            "notice": (
+                "Live source data was degraded or partial; showing available cached or fallback results."
+                if live_degraded else ""
+            ),
             "disclaimer": (
                 "⚠  SIMULATION: Mock mode uses demo content. Live mode uses free public sources and may be incomplete."
             ),

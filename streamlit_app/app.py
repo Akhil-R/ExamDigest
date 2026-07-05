@@ -655,7 +655,7 @@ elif st.session_state.pipeline_done and st.session_state.digest_data is not None
 
     if st.session_state.source_warnings:
         st.warning(
-            "Some live sources could not be fetched: "
+            "Live source data was degraded or partial; showing available cached or fallback results. "
             + " | ".join(st.session_state.source_warnings[:3])
         )
 
