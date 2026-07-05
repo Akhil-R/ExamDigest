@@ -73,8 +73,8 @@ and **Railway (RRB)** exams.
 | 1 | **News Collector** | `agents/collector.py` | Returns mock article data by default, or free live-source results in live mode |
 | 2 | **Relevance Filter** | `agents/filter.py` | Matches articles to exam syllabus tags; skips seen topics |
 | 3 | **Summariser** | `agents/summarizer.py` | Rewrites each article into a concise, syllabus-relevant fact |
-| 4 | **Critique / Verifier** | `agents/critique.py` | Validates URL protocol, non-empty content, and minimum fact length |
-| 5 | **Quiz Generator** | `agents/quiz.py` | Produces 5 MCQs mapped to digest facts, with options and explanations |
+| 4 | **Critique / Verifier** | `agents/critique.py` | Fast URL/content checks plus optional Gemini faithfulness verification when an API key is available |
+| 5 | **Quiz Generator** | `agents/quiz.py` | Produces 5 MCQs mapped to digest facts, with Gemini-backed generation and template fallback when needed |
 
 ### Data Files
 
@@ -114,6 +114,17 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 ```bash
 uv pip install -r requirements.txt
 ```
+
+### 4. Configure environment variables
+
+Copy [.env.example](.env.example) to `.env` and set the values you need:
+
+```bash
+cp .env.example .env
+```
+
+- `GEMINI_API_KEY` enables the Gemini-backed summarizer, quiz generator, and critique verifier. When it is not set, the app falls back to heuristic summaries, template-based quiz questions, and conservative verification.
+- `DATA_MODE` controls the default CLI/API behavior (`mock` or `live`).
 
 ---
 
@@ -183,7 +194,7 @@ Full interactive docs at `http://localhost:8000/docs` (Swagger UI).
 
 ## 📸 Screenshots
 
-> Add screenshots of the running application here after deployment.
+> Streamlit app deployment status: the project is not currently deployed to Streamlit Cloud from this workspace. The screenshots below are placeholders until a public deployment is available.
 
 | View | Description |
 |------|-------------|
@@ -198,7 +209,7 @@ Full interactive docs at `http://localhost:8000/docs` (Swagger UI).
 
 - **Live News Integration** — Replace mock DB with real Google News / RSS / NewsAPI feeds
 - **More Official Feeds** — Add direct RSS/static-source URLs for PIB, Kerala PRD, ISRO, RBI, and Railways where available
-- **LLM Summarisation** — Use Gemini / GPT-4o to generate dynamic, contextualised summaries
+- **Gemini-backed summarisation** — Summarizer and quiz generation already use Gemini when a key is available, with heuristic/template fallback on failure
 - **Daily Scheduler** — Cron job to auto-run the pipeline and push digests via email/WhatsApp
 - **User Accounts** — Personalised history, bookmarks, and streak tracking
 - **Multilingual Support** — Digest and quiz output in Malayalam, Hindi, Tamil
