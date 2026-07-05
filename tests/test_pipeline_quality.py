@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
 
+from agents.critique import CritiqueAgent
 from agents.live_collector import LiveNewsCollector
 from agents.summarizer import Summarizer
 from agents.quiz import QuizGenerator
@@ -54,6 +55,30 @@ class QuizGeneratorTests(unittest.TestCase):
         quiz = generator.generate_quiz([])
 
         self.assertEqual(quiz, [])
+
+
+class CritiqueAgentTests(unittest.TestCase):
+    def test_verify_drops_fact_when_gemini_rejects_it(self):
+        agent = CritiqueAgent()
+        fact = {
+            "title": "Kerala Launches Digital Access Scheme",
+            "fact": "Kerala launched a new scheme to improve digital access in rural areas.",
+            "source_url": "https://example.com/news",
+            "tags": ["Kerala Governance"],
+        }
+        source_articles = [
+            {
+                "title": "Kerala Launches Digital Access Scheme",
+                "content": "The government announced a scheme for rural households.",
+                "url": "https://example.com/news",
+                "tags": ["Kerala Governance"],
+            }
+        ]
+
+        with patch.object(agent, "_verify_fact_with_gemini", return_value=False):
+            verified = agent.verify([fact], source_articles=source_articles)
+
+        self.assertEqual(verified, [])
 
 
 class LiveNewsCollectorTests(unittest.TestCase):
