@@ -1,8 +1,16 @@
+import json
+import logging
 from typing import List, Dict, Any, AsyncGenerator
+
+from google import genai
 from pydantic import PrivateAttr
 from google.adk.agents import BaseAgent
 from google.adk.agents.invocation_context import InvocationContext
 from google.adk.events import Event
+
+logger = logging.getLogger(__name__)
+
+_GEMINI_MODEL = "gemini-2.0-flash"
 
 class QuizGenerator(BaseAgent):
     """Quiz Generator stage.
@@ -183,6 +191,47 @@ class QuizGenerator(BaseAgent):
             }
         }
 
+    # ------------------------------------------------------------------ #
+    # Gemini helper                                                        #
+    # ------------------------------------------------------------------ #
+
+    def _generate_question_with_gemini(self, fact: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate one MCQ for *fact* via Gemini.
+
+        Returns a dict with keys: question, options (list[str]), correct_answer,
+        explanation.  Raises on any error so the caller can fall back.
+        """
+        prompt = (
+            "You are a quiz-setter for Indian competitive exams (PSC, SSC, Railway).\n"
+            "Given the fact below, create exactly ONE multiple-choice question with:\n"
+            "  - A clear question sentence\n"
+            "  - Exactly 4 distinct answer options (labelled A, B, C, D internally)\n"
+            "  - The correct answer text (must match one option exactly)\n"
+            "  - A one-sentence explanation\n\n"
+            "Return ONLY valid JSON in this exact structure, no markdown:\n"
+            '{"question": "...", "options": ["...", "...", "...", "..."], '
+            '"correct_answer": "...", "explanation": "..."}\n\n'
+            f"Fact title: {fact['title']}\n"
+            f"Fact: {fact['fact']}"
+        )
+        client = genai.Client()
+        response = client.models.generate_content(model=_GEMINI_MODEL, contents=prompt)
+        raw = (response.text or "").strip()
+        # Strip accidental markdown fences if the model adds them
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        data = json.loads(raw)
+        # Basic validation
+        assert isinstance(data["options"], list) and len(data["options"]) == 4
+        assert data["correct_answer"] in data["options"]
+        return data
+
+    # ------------------------------------------------------------------ #
+    # Public interface                                                     #
+    # ------------------------------------------------------------------ #
+
     def generate_quiz(self, facts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Generates a list of 5 multiple choice questions from digest facts.
 
@@ -208,21 +257,32 @@ class QuizGenerator(BaseAgent):
             title = fact["title"]
 
             if title in self.question_db:
+                # Use hand-crafted question from the static database
                 item = self.question_db[title]
                 question_text = item["question"]
                 options = item["options"]
                 correct_answer = item["correct_answer"]
                 explanation = item["explanation"]
             else:
-                question_text = f"Which of the following is correct regarding '{fact['title']}'?"
-                options = [
-                    f"It relates to: {fact['fact'][:60]}...",
-                    "It has no relevance to competitive exams.",
-                    "It was declared unconstitutional by all global courts.",
-                    "It only affects private enterprise and has no government scope.",
-                ]
-                correct_answer = options[0]
-                explanation = f"Based on the digest, the correct answer is A because: {fact['fact']}"
+                # Try Gemini; fall back to template on any error
+                try:
+                    gemini_q = self._generate_question_with_gemini(fact)
+                    question_text = gemini_q["question"]
+                    options = gemini_q["options"]
+                    correct_answer = gemini_q["correct_answer"]
+                    explanation = gemini_q["explanation"]
+                    logger.debug("[QuizGenerator] Gemini question for '%s'", title)
+                except Exception as exc:
+                    logger.warning("[QuizGenerator] Gemini call failed (%s); using template.", exc)
+                    question_text = f"Which of the following is correct regarding '{fact['title']}'?"
+                    options = [
+                        f"It relates to: {fact['fact'][:60]}...",
+                        "It has no relevance to competitive exams.",
+                        "It was declared unconstitutional by all global courts.",
+                        "It only affects private enterprise and has no government scope.",
+                    ]
+                    correct_answer = options[0]
+                    explanation = f"Based on the digest, the correct answer is A because: {fact['fact']}"
 
             questions.append(
                 {
