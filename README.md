@@ -196,6 +196,8 @@ Full interactive docs at `http://localhost:8000/docs` (Swagger UI).
 
 > Local preview is available at http://127.0.0.1:8501 while the app is running. A public Streamlit Cloud deployment is not configured from this workspace yet, so the screenshots below reflect the current local UI until a hosted deployment is created.
 
+![Streamlit home screen](screenshots/streamlit_home.png)
+
 | View | Description |
 |------|-------------|
 | `screenshots/streamlit_home.png` | Home screen with exam selector and configuration sidebar |
@@ -247,7 +249,3 @@ ExamDigest/
 ├── SPEC.md
 └── README.md
 ```
-
-
-
-
