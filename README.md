@@ -5,9 +5,36 @@
 > live sources. It does not represent official exam notifications. Each fact includes a source link
 > — please verify independently before relying on any information for your exam preparation.
 
-A staged AI-agent pipeline that curates **syllabus-relevant current affairs** and generates
-**practice MCQs** for competitive exam aspirants — targeting **Kerala PSC**, **SSC (CGL/CHSL)**,
-and **Railway (RRB)** exams.
+ExamDigest is a polished demo experience for competitive exam aspirants who want fast, syllabus-aware
+current-affairs prep without manually sifting through raw news. The project combines a simple Streamlit
+UI with a staged AI-agent workflow that turns topic discovery into study-ready facts and short practice
+quizzes.
+
+## 🎯 Overview
+
+- **Problem:** Aspirants need quick, relevant updates for PSC, SSC, and Railway prep without spending hours scanning news.
+- **Solution:** A lightweight pipeline that collects candidate topics, filters them by exam relevance, summarizes them into concise facts, and generates a short quiz.
+- **Experience:** The interface is intentionally simple and presentation-friendly, making the project feel demo-ready for hackathons, portfolios, and product pitches.
+
+## 🧭 Planned Pipeline
+
+The current build highlights a practical demo path centered on:
+
+collector → summarizer → quiz generator → verifier
+
+This is supported by lightweight filtering, deduplication, and source-traceability so the workflow stays understandable and easy to present.
+
+## 📊 Demo Flow
+
+```mermaid
+flowchart LR
+    A[Collector] --> B[Filter & Dedup]
+    B --> C[Summarizer]
+    C --> D[Verifier]
+    D --> E[Quiz Generator]
+```
+
+![Streamlit demo](screenshots/streamlit_home.png)
 
 ---
 
@@ -117,10 +144,10 @@ uv pip install -r requirements.txt
 
 ### 4. Configure environment variables
 
-Copy [.env.example](.env.example) to `.env` and set the values you need:
+Create a `.env` file if you want to override defaults locally:
 
 ```bash
-cp .env.example .env
+touch .env
 ```
 
 - `GEMINI_API_KEY` enables the Gemini-backed summarizer, quiz generator, and critique verifier. When it is not set, the app falls back to heuristic summaries, template-based quiz questions, and conservative verification.
@@ -154,23 +181,26 @@ Open your browser at **`http://localhost:8501`**.
 ## 💻 CLI Usage
 
 ```bash
-# Run pipeline for Kerala PSC
+# Run via the root entrypoint
+python main.py --exam psc
+
+# Run via the module entrypoint
 python cli/main.py --exam psc
 
 # Run with free live public sources instead of deterministic mock data
-python cli/main.py --exam psc --data-mode live
+python main.py --exam psc --data-mode live
 
 # Run pipeline for SSC
-python cli/main.py --exam ssc
+python main.py --exam ssc
 
 # Run pipeline for Railway
-python cli/main.py --exam railway
+python main.py --exam railway
 
 # Clear deduplication memory (allows re-running the full dataset)
-python cli/main.py --reset-memory
+python main.py --reset-memory
 
 # Reset memory AND run the pipeline
-python cli/main.py --exam psc --reset-memory
+python main.py --exam psc --reset-memory
 ```
 
 Output files are saved to `outputs/digest.md` and `outputs/quiz.json`.
@@ -196,12 +226,14 @@ Full interactive docs at `http://localhost:8000/docs` (Swagger UI).
 
 > Local preview is available at http://127.0.0.1:8501 while the app is running. A public Streamlit Cloud deployment is not configured from this workspace yet, so the screenshots below reflect the current local UI until a hosted deployment is created.
 
+The demo is designed to feel approachable in a presentation: the landing page presents a clear exam selector and a compact workflow preview, while the digest and quiz views make the generated output feel tangible and usable.
+
 ![Streamlit home screen](screenshots/streamlit_home.png)
 
 | View | Description |
 |------|-------------|
-| `screenshots/streamlit_home.png` | Home screen with exam selector and configuration sidebar |
-| `screenshots/digest.png` | Study Digest tab with fact cards and source-linked results |
+| `screenshots/streamlit_home.png` | Polished landing screen with exam selection and a workflow preview card |
+| `screenshots/digest.png` | Study Digest tab with source-linked fact cards |
 | `screenshots/quiz.png` | Practice Quiz with answer selection and explanations |
 | `screenshots/score.png` | Score banner after quiz submission |
 
@@ -234,18 +266,21 @@ ExamDigest/
 │   ├── critique.py       # Stage 4: Quality verification
 │   └── quiz.py           # Stage 5: MCQ generation
 ├── cli/
-│   └── main.py           # CLI entrypoint (--exam, --reset-memory)
+│   └── main.py           # Module CLI entrypoint (--exam, --reset-memory)
 ├── server/
 │   └── app.py            # FastAPI REST API server
 ├── streamlit_app/
 │   └── app.py            # Streamlit web UI
 ├── data/
 │   ├── syllabus_tags.json # Exam-to-tags mapping
+│   ├── source_config.json # Free live-source query config
 │   └── seen_topics.json   # Deduplication memory store
 ├── outputs/
 │   ├── digest.md          # Last generated digest (Markdown)
 │   └── quiz.json          # Last generated quiz (JSON)
+├── main.py               # Root CLI entrypoint
 ├── requirements.txt
 ├── SPEC.md
-└── README.md
+├── README.md
+└── .github/workflows/tests.yml
 ```

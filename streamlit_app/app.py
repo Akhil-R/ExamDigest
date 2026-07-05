@@ -472,6 +472,29 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+st.markdown(
+    """
+<div style="background:rgba(15,23,42,0.82);border:1px solid #1e293b;border-radius:14px;padding:1rem 1.1rem;margin-bottom:1.2rem;">
+  <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:#60a5fa;text-transform:uppercase;margin-bottom:0.6rem;">Quick Preview</div>
+  <div style="display:flex;flex-wrap:wrap;gap:0.65rem;">
+    <div style="flex:1;min-width:180px;background:rgba(59,130,246,0.10);border:1px solid rgba(59,130,246,0.22);border-radius:10px;padding:0.75rem;">
+      <div style="color:#e2e8f0;font-weight:600;margin-bottom:0.25rem;">Collector</div>
+      <div style="color:#94a3b8;font-size:0.8rem;line-height:1.45;">Pulls candidate current-affairs items from mock or live-friendly sources.</div>
+    </div>
+    <div style="flex:1;min-width:180px;background:rgba(34,197,94,0.10);border:1px solid rgba(34,197,94,0.22);border-radius:10px;padding:0.75rem;">
+      <div style="color:#e2e8f0;font-weight:600;margin-bottom:0.25rem;">Summarizer</div>
+      <div style="color:#94a3b8;font-size:0.8rem;line-height:1.45;">Turns each item into an exam-ready fact with clear relevance.</div>
+    </div>
+    <div style="flex:1;min-width:180px;background:rgba(168,85,247,0.10);border:1px solid rgba(168,85,247,0.22);border-radius:10px;padding:0.75rem;">
+      <div style="color:#e2e8f0;font-weight:600;margin-bottom:0.25rem;">Quiz &amp; Verifier</div>
+      <div style="color:#94a3b8;font-size:0.8rem;line-height:1.45;">Builds practice MCQs and keeps outputs traceable to source links.</div>
+    </div>
+  </div>
+</div>
+""",
+    unsafe_allow_html=True,
+)
+
 # ─── Exam Selection & Generate ────────────────────────────────────────────────
 
 col_sel, col_btn = st.columns([3, 1], gap="medium")
