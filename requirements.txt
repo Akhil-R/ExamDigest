@@ -7,3 +7,5 @@ python-multipart
 feedparser
 beautifulsoup4
 google-genai
+google-adk
+pydantic
