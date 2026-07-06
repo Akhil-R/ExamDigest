@@ -86,17 +86,7 @@ verification so each stage can be tuned independently.
   verification strategy
 
 ## 9. Installation
-Create a virtual environment and install the necessary package dependencies using uv:
-```bash
-# 1. Create a virtual environment
-uv venv
-
-# 2. Activate the virtual environment
-source .venv/bin/activate
-
-# 3. Install packages
-uv pip install -r requirements.txt
-```
+For detailed installation and setup instructions, please see [README.md](README.md).
 
 ## 10. Run Instructions
 To run the system locally, use the provided launcher script from the project root:
