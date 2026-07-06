@@ -6,7 +6,12 @@ class _MockResponse:
 
 class _MockModel:
     def generate_content(self, model: str, contents: str) -> _MockResponse:
-        # Return empty text to trigger heuristic fallback.
+        # Without an API key there is nothing to verify or summarize.
+        # Return "YES" so the critique stage does not incorrectly veto facts,
+        # and return "" for everything else (summarizer/quiz) so they fall
+        # through to their own heuristic/template fallbacks.
+        if "fact-verifier" in contents or "Answer YES" in contents:
+            return _MockResponse(text="YES")
         return _MockResponse(text="")
 
 class _MockClient:
