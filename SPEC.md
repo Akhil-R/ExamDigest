@@ -35,8 +35,7 @@ This design decouples retrieval, filtering, rewriting, question generation, and
 verification so each stage can be tuned independently.
 
 ## 4. Tools and Data
-- Search/Collector tool: deterministic mock data for default mode; GDELT search queries
-  (and optional RSS feeds configured in `data/source_config.json`) for live mode
+- Search/Collector tool: deterministic mock data for default mode; GDELT search queries (and optional RSS feeds configured in `data/source_config.json`) for live mode. **If `GEMINI_API_KEY` is absent, the system runs fully offline using mock Gemini client fallback.**
 - Static syllabus map: JSON-based keyword/tag definitions for PSC, SSC, and
   Railway syllabus topics
 - Static source map: JSON-based live-source query definitions for PSC, SSC, and

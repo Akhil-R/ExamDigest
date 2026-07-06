@@ -77,7 +77,7 @@ Create a `.env` file if you want to override defaults locally:
 touch .env
 ```
 
-- `GEMINI_API_KEY` enables the Gemini-backed summarizer, quiz generator, and critique verifier. When it is not set, the app falls back to heuristic summaries, template-based quiz questions, and conservative verification.
+- `GEMINI_API_KEY` enables the Gemini-backed summarizer, quiz generator, and critique verifier. When it is not set, the app falls back to heuristic summaries, template-based quiz questions, and conservative verification. **If omitted, the system runs fully offline using mock client fallback.**
 - `DATA_MODE` controls the default CLI/API behavior (`mock` or `live`).
 
 ---
