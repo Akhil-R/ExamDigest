@@ -1,8 +1,7 @@
 # ExamDigest Architecture 🏗️
 
-This document details the system design, pipeline stages, data file layout, API reference, and project structure of ExamDigest.
+This document details the system design, pipeline stages, data file layout and  API reference of ExamDigest.
 
-For setup and run instructions, please refer to the [README.md](README.md). For product goals and requirements, see [SPEC.md](SPEC.md).
 
 ---
 
@@ -66,47 +65,7 @@ graph TD
 
 ## 🌐 API Reference
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | API info and endpoint listing |
-| `GET` | `/health` | Liveness probe |
-| `GET` | `/current-affairs?exam={psc\|ssc\|railway}` | Run pipeline; return digest facts |
-| `GET` | `/quiz?exam={psc\|ssc\|railway}` | Run pipeline; return 5-question quiz |
-| `GET` | `/generate?exam={psc\|ssc\|railway}&data_mode={mock\|live}` | Run with selected data mode |
-| `POST` | `/reset-memory` | Clear `seen_topics.json` dedup memory |
-
 Full interactive docs at `http://localhost:8000/docs` (Swagger UI).
 
 ---
 
-## 📂 Project Structure
-
-> **Note:** This layout reflects how the repository will appear once pushed to GitHub.
-
-```
-.
-├── agents/
-│   ├── collector.py      # Stage 1: Mock news article database
-│   ├── filter.py         # Stage 2: Syllabus relevance + deduplication
-│   ├── summarizer.py     # Stage 3: Exam-ready fact generation
-│   ├── critique.py       # Stage 4: Quality verification
-│   └── quiz.py           # Stage 5: MCQ generation
-├── cli/
-│   └── main.py           # Module CLI entrypoint (--exam, --reset-memory)
-├── server/
-│   └── app.py            # FastAPI REST API server
-├── streamlit_app/
-│   └── app.py            # Streamlit web UI
-├── data/
-│   ├── syllabus_tags.json # Exam-to-tags mapping
-│   ├── source_config.json # Free live-source query config
-│   └── seen_topics.json   # Deduplication memory store
-├── outputs/
-│   ├── digest.md          # Last generated digest (Markdown)
-│   └── quiz.json          # Last generated quiz (JSON)
-├── main.py               # Root CLI entrypoint
-├── requirements.txt
-├── SPEC.md
-├── README.md
-└── .github/workflows/tests.yml
-```
