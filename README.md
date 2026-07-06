@@ -21,6 +21,15 @@ For more technical details on system design, data schema, and api reference, see
 
 ---
 
+## 📸 Project Demo Screenshot
+
+> Local preview is available at http://127.0.0.1:8501 while the app is running. 
+
+
+![Streamlit home screen](screenshots/streamlit_home.png)
+
+---
+
 ## ✨ Features
 
 | Feature | Details |
@@ -130,23 +139,6 @@ python main.py --exam psc --reset-memory
 ```
 
 Output files are saved to `outputs/digest.md` and `outputs/quiz.json`.
-
----
-
-## 📸 Screenshots
-
-> Local preview is available at http://127.0.0.1:8501 while the app is running. A public Streamlit Cloud deployment is not configured from this workspace yet, so the screenshots below reflect the current local UI until a hosted deployment is created.
-
-The demo is designed to feel approachable in a presentation: the landing page presents a clear exam selector and a compact workflow preview, while the digest and quiz views make the generated output feel tangible and usable.
-
-![Streamlit home screen](screenshots/streamlit_home.png)
-
-| View | Description |
-|------|-------------|
-| `screenshots/streamlit_home.png` | Polished landing screen with exam selection and a workflow preview card |
-| `screenshots/digest.png` | Study Digest tab with source-linked fact cards |
-| `screenshots/quiz.png` | Practice Quiz with answer selection and explanations |
-| `screenshots/score.png` | Score banner after quiz submission |
 
 ---
 

@@ -22,16 +22,14 @@ A successful run of the application (Streamlit or `python main.py --exam psc` / 
 ## 3. Architecture Overview
 The system uses a staged agent workflow with clearly separated responsibilities.
 
-- Web App UI: A Streamlit user interface that allows the user to choose an exam type and triggers the pipeline endpoints on the FastAPI server to show digests and quiz questions.
-- News Collector: loads deterministic mock data by default, or fetches best-effort
-  recent current affairs content from free public sources when live mode is enabled
-- Relevance Filter: scores and selects the top 8-12 items based on a syllabus
-  keyword map for PSC/SSC/Railway topics
-- Summarizer: rewrites each selected item into a concise exam-ready fact
-- Quiz Generator: creates 5 MCQs from the final digest content
-- Verifier / Critique Agent: checks digest facts against source URLs and removes or corrects
-  any unsupported statements
-- Memory Store: tracks recent topics to prevent repeats across daily runs
+- **Streamlit Web UI**: A web interface that allows users to choose an exam type and displays the generated study digest and quiz.
+- **FastAPI Server**: The backend API server that exposes endpoints to trigger pipeline stages and fetch results.
+- **News Collector**: Stage 1 agent that returns mock article data by default, or free live-source results in live mode.
+- **Relevance Filter**: Stage 2 agent that matches articles to exam syllabus tags and filters out seen topics.
+- **Summariser**: Stage 3 agent that rewrites each selected article into a concise, syllabus-relevant fact.
+- **Critique / Verifier**: Stage 4 agent that checks digest facts against source URLs and verifies faithfulness.
+- **Quiz Generator**: Stage 5 agent that produces 5 MCQs mapped to digest facts.
+- **Memory Store**: Tracks seen topics to prevent repeats across runs.
 
 This design decouples retrieval, filtering, rewriting, question generation, and
 verification so each stage can be tuned independently.
@@ -75,15 +73,14 @@ verification so each stage can be tuned independently.
 
 ## 8. Deliverables for the First Capstone Submission
 - `streamlit_app/app.py` for the Streamlit web application
+- `server/app.py` for the FastAPI backend server
 - `main.py` root CLI driver with `--exam` selection for developer testing
 - `cli/main.py` module entrypoint that exposes the same CLI flow
 - `data/syllabus_tags.json` for PSC, SSC, Railway topic filtering
 - `data/source_config.json` for free live-source query configuration
 - `data/seen_topics.json` or equivalent memory store
-- Output files such as `digest.md` and `quiz.json`
-- Streamlit app deployed on Streamlit Cloud + CLI outputs
-- A short project description documenting the architecture, tools, and
-  verification strategy
+- Output files `outputs/digest.md` and `outputs/quiz.json`
+- Project documentation (`README.md`, `SPEC.md`, `ARCHITECTURE.md`) documenting the architecture, tools, and verification strategy
 
 ## 9. Installation
 For detailed installation and setup instructions, please see [README.md](README.md).
