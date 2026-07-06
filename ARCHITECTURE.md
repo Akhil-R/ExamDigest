@@ -20,7 +20,7 @@ graph TD
     subgraph Stages ["Staged Pipeline (cli/main.py)"]
         S1["1. News Collector<br/>(agents/collector.py)"]
         S2["2. Relevance Filter<br/>(agents/filter.py)"]
-        S3["3. Summariser<br/>(agents/summarizer.py)"]
+        S3["3. Summarizer<br/>(agents/summarizer.py)"]
         S4["4. Critique/Verifier<br/>(agents/critique.py)"]
         S5["5. Quiz Generator<br/>(agents/quiz.py)"]
         
@@ -46,7 +46,7 @@ graph TD
 |---|-------|------|-------------|
 | 1 | **News Collector** | [collector.py](agents/collector.py) | Returns mock article data by default, or free live-source results in live mode |
 | 2 | **Relevance Filter** | [filter.py](agents/filter.py) | Matches articles to exam syllabus tags; skips seen topics |
-| 3 | **Summariser** | [summarizer.py](agents/summarizer.py) | Rewrites each selected item into a concise, syllabus-relevant fact |
+| 3 | **Summarizer** | [summarizer.py](agents/summarizer.py) | Rewrites each selected item into a concise, syllabus-relevant fact |
 | 4 | **Critique / Verifier** | [critique.py](agents/critique.py) | Fast URL/content checks plus optional Gemini faithfulness verification when an API key is available |
 | 5 | **Quiz Generator** | [quiz.py](agents/quiz.py) | Produces 5 MCQs mapped to digest facts, with Gemini-backed generation and template fallback when needed |
 

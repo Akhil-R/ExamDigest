@@ -42,8 +42,9 @@ class Summarizer(BaseAgent):
             "Do NOT add bullet points, headings, or markdown — plain text only.\n\n"
             f"Passage:\n{content[:1500]}"
         )
-        client = genai.Client()
-        response = client.models.generate_content(model=_GEMINI_MODEL, contents=prompt)
+        if not hasattr(self, "_client") or self._client is None:
+            self._client = genai.Client()
+        response = self._client.models.generate_content(model=_GEMINI_MODEL, contents=prompt)
         text = (response.text or "").strip()
         if len(text) > 120:
             text = text[:117].rstrip() + "..."

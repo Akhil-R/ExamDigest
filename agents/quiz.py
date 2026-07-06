@@ -214,8 +214,9 @@ class QuizGenerator(BaseAgent):
             f"Fact title: {fact['title']}\n"
             f"Fact: {fact['fact']}"
         )
-        client = genai.Client()
-        response = client.models.generate_content(model=_GEMINI_MODEL, contents=prompt)
+        if not hasattr(self, "_client") or self._client is None:
+            self._client = genai.Client()
+        response = self._client.models.generate_content(model=_GEMINI_MODEL, contents=prompt)
         raw = (response.text or "").strip()
         # Strip accidental markdown fences if the model adds them
         if raw.startswith("```"):

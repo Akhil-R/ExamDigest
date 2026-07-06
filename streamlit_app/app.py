@@ -330,7 +330,7 @@ EXAM_META = {
 PIPELINE_STAGES = [
     ("🔍", "News Collection", "Gathering relevant current affairs articles"),
     ("🏷️", "Relevance Filtering & Deduplication", "Scoring articles against syllabus tags"),
-    ("✍️", "Fact Summarisation", "Rewriting items as concise exam-ready facts"),
+    ("✍️", "Fact Summarization", "Rewriting items as concise exam-ready facts"),
     ("🔎", "Quality Verification", "Checking source links and fact quality"),
     ("❓", "Quiz Generation", "Generating 5 multiple-choice questions"),
 ]

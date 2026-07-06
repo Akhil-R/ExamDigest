@@ -30,8 +30,9 @@ class CritiqueAgent(BaseAgent):
             f"Fact: {fact.get('fact', '')}\n\n"
             f"Source passage: {source_article.get('content', '')[:2500]}"
         )
-        client = genai.Client()
-        response = client.models.generate_content(model=_GEMINI_MODEL, contents=prompt)
+        if not hasattr(self, "_client") or self._client is None:
+            self._client = genai.Client()
+        response = self._client.models.generate_content(model=_GEMINI_MODEL, contents=prompt)
         verdict = (response.text or "").strip().upper()
         return verdict == "YES"
 

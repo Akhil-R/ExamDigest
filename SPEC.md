@@ -26,7 +26,7 @@ The system uses a staged agent workflow with clearly separated responsibilities.
 - **FastAPI Server**: The backend API server that exposes endpoints to trigger pipeline stages and fetch results.
 - **News Collector**: Stage 1 agent that returns mock article data by default, or free live-source results in live mode.
 - **Relevance Filter**: Stage 2 agent that matches articles to exam syllabus tags and filters out seen topics.
-- **Summariser**: Stage 3 agent that rewrites each selected article into a concise, syllabus-relevant fact.
+- **Summarizer**: Stage 3 agent that rewrites each selected article into a concise, syllabus-relevant fact.
 - **Critique / Verifier**: Stage 4 agent that checks digest facts against source URLs and verifies faithfulness.
 - **Quiz Generator**: Stage 5 agent that produces 5 MCQs mapped to digest facts.
 - **Memory Store**: Tracks seen topics to prevent repeats across runs.
@@ -35,8 +35,8 @@ This design decouples retrieval, filtering, rewriting, question generation, and
 verification so each stage can be tuned independently.
 
 ## 4. Tools and Data
-- Search/Collector tool: deterministic mock data for default mode; free public
-  RSS/static pages and GDELT queries for live mode
+- Search/Collector tool: deterministic mock data for default mode; GDELT search queries
+  (and optional RSS feeds configured in `data/source_config.json`) for live mode
 - Static syllabus map: JSON-based keyword/tag definitions for PSC, SSC, and
   Railway syllabus topics
 - Static source map: JSON-based live-source query definitions for PSC, SSC, and

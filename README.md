@@ -34,7 +34,7 @@ For more technical details on system design, data schema, and api reference, see
 
 | Feature | Details |
 |---|---|
-| **Staged Agent Pipeline** | 5 cleanly separated stages: Collect → Filter → Summarise → Verify → Quiz |
+| **Staged Agent Pipeline** | 5 cleanly separated stages: Collect → Filter → Summarize → Verify → Quiz |
 | **Mock + Live Data Modes** | Mock data by default, optional live feeds. |
 | **Syllabus Tag Filtering** | Articles scored against PSC / SSC / Railway keyword maps |
 | **Deduplication Memory** | `seen_topics.json` prevents repeat articles across runs |
@@ -144,7 +144,7 @@ Output files are saved to `outputs/digest.md` and `outputs/quiz.json`.
 
 ## 🔮 What's Next
 
-- **Live News Integration** — Replace mock DB with real Google News / RSS / NewsAPI feeds
+- **Richer Live News Sources** — Expand live mode beyond GDELT with curated RSS feeds and Google News / NewsAPI integrations
 - **Daily Scheduler** — Cron job to auto-run the pipeline and push digests via email/WhatsApp
 - **Multilingual Support** — Digest and quiz output in Malayalam, Hindi, Tamil
 - **Production Deployment** — Streamlit Cloud + Cloud Run containerised backend with CI/CD
