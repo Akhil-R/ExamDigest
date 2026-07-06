@@ -5,8 +5,7 @@
 > live sources. It does not represent official exam notifications. Each fact includes a source link
 > — please verify independently before relying on any information for your exam preparation.
 
-ExamDigest is a polished demo experience for competitive exam aspirants who want fast, syllabus-aware
-current-affairs prep without manually sifting through raw news. The project combines a simple Streamlit
+ExamDigest helps aspirants quickly prepare current affairs without scanning raw news. The project combines a simple Streamlit
 UI with a staged AI-agent workflow that turns topic discovery into study-ready facts and short practice
 quizzes.
 
@@ -22,7 +21,7 @@ The current build highlights a practical demo path centered on:
 
 collector → summarizer → quiz generator → verifier
 
-This is supported by lightweight filtering, deduplication, and source-traceability so the workflow stays understandable and easy to present.
+Supported by filtering, deduplication, and source-traceability for clarity.
 
 ## 📊 Demo Flow
 
@@ -43,12 +42,12 @@ flowchart LR
 | Feature | Details |
 |---|---|
 | **Staged Agent Pipeline** | 5 cleanly separated stages: Collect → Filter → Summarise → Verify → Quiz |
-| **Mock + Live Data Modes** | Default deterministic mock data, plus opt-in free live sources via GDELT/public feeds |
+| **Mock + Live Data Modes** | Mock data by default, optional live feeds. |
 | **Kerala-specific Content** | Vizhinjam Port, KFON, K-Smart, Aksharasree, Kudumbashree & more |
 | **Indian National Affairs** | ISRO Gaganyaan, India Semiconductor Mission, UPS, Kavach, Vande Bharat |
 | **Syllabus Tag Filtering** | Articles scored against PSC / SSC / Railway keyword maps |
 | **Deduplication Memory** | `seen_topics.json` prevents repeat articles across runs |
-| **Source-Linked Facts** | Every fact carries a `source_url` for independent verification |
+| **Source-Linked Facts** | Each fact links to a source. |
 | **Interactive Quiz** | 5 MCQs with real-time scoring, explanations & grade banner |
 | **Pipeline Visualisation** | Animated stage-by-stage progress in the Streamlit UI |
 | **Error / Empty States** | Graceful messages when backend is down or memory is exhausted |
@@ -157,24 +156,32 @@ touch .env
 
 ## 🚀 Running Locally
 
-You need **two terminal windows**.
+Start both the FastAPI backend and the Streamlit UI with a single command:
 
-### Terminal 1 — Start the FastAPI backend
+### Linux/macOS
+
+```bash
+./run.sh
+```
+
+### Windows
+
+```bat
+run.bat
+```
+
+The launcher starts:
+- the backend at `http://localhost:8000`
+- the Streamlit UI at `http://localhost:8501`
+
+Interactive Swagger docs: `http://localhost:8000/docs`
+
+If you prefer to start them manually, you can still run the two services separately:
 
 ```bash
 uv run python -m uvicorn server.app:app --host 127.0.0.1 --port 8000 --reload
-```
-
-The API will be available at `http://localhost:8000`.  
-Interactive Swagger docs: `http://localhost:8000/docs`
-
-### Terminal 2 — Start the Streamlit UI
-
-```bash
 uv run python -m streamlit run streamlit_app/app.py
 ```
-
-Open your browser at **`http://localhost:8501`**.
 
 ---
 

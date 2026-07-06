@@ -75,7 +75,8 @@ verification so each stage can be tuned independently.
 
 ## 8. Deliverables for the First Capstone Submission
 - `streamlit_app/app.py` for the Streamlit web application
-- `main.py` CLI driver with `--exam` selection for developer testing
+- `main.py` root CLI driver with `--exam` selection for developer testing
+- `cli/main.py` module entrypoint that exposes the same CLI flow
 - `data/syllabus_tags.json` for PSC, SSC, Railway topic filtering
 - `data/source_config.json` for free live-source query configuration
 - `data/seen_topics.json` or equivalent memory store
@@ -98,24 +99,29 @@ uv pip install -r requirements.txt
 ```
 
 ## 10. Run Instructions
-To run the system locally:
+To run the system locally, use the provided launcher script from the project root:
 
-1. **Start the FastAPI server**:
-   From the project root, run:
-   ```bash
-   uv run python -m uvicorn server.app:app --host 127.0.0.1 --port 8000
-   ```
-2. **Start the Streamlit application**:
-   In a separate terminal window, run:
-   ```bash
-   uv run python -m streamlit run streamlit_app/app.py
-   ```
-3. **Access the application**:
-   Open your browser and navigate to:
-   ```
-   http://localhost:8501
-   ```
-   Choose the target exam category, and click the generate button to fetch the latest digest and quiz.
+```bash
+./run.sh
+```
+
+On Windows, run:
+
+```bat
+run.bat
+```
+
+The launcher starts the FastAPI backend and the Streamlit UI together, exposing:
+- `http://localhost:8000` for the API and docs
+- `http://localhost:8501` for the UI
+
+Choose the target exam category, and click the generate button to fetch the latest digest and quiz.
+
+If you prefer to start the services manually, you can still run them separately:
+```bash
+uv run python -m uvicorn server.app:app --host 127.0.0.1 --port 8000
+uv run python -m streamlit run streamlit_app/app.py
+```
 
 To run live free-source mode from the CLI:
 ```bash
@@ -126,3 +132,7 @@ To run live free-source mode from the API:
 ```bash
 curl "http://localhost:8000/generate?exam=psc&data_mode=live"
 ```
+
+## 11. Documentation Maintenance
+- Update the README and SPEC whenever the CLI entrypoints, file layout, or runtime behavior change.
+- A CI workflow runs a lightweight documentation verification script so drift is caught on pull requests and pushes.

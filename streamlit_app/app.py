@@ -612,9 +612,9 @@ if st.session_state.error_msg:
 <div class="error-box">
   <strong>❌ Cannot Connect to Backend</strong><br><br>
   Could not reach the FastAPI server at <code>{backend_url}</code>.<br><br>
-  <strong>To start the server, run:</strong><br>
-  <code>uv run python -m uvicorn server.app:app --host 127.0.0.1 --port 8000 --reload</code><br><br>
-  Then refresh this page and try again.
+  <strong>To start both services together, run:</strong><br>
+  <code>./run.sh</code> on Linux/macOS or <code>run.bat</code> on Windows.<br><br>
+  You can also start the backend manually with <code>uv run python -m uvicorn server.app:app --host 127.0.0.1 --port 8000 --reload</code> and then refresh this page.
 </div>
 """,
             unsafe_allow_html=True,
